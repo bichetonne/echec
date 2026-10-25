@@ -5,9 +5,10 @@ import time
 STOCKFISH_PATH = "stockfish" 
 
 class ChessRobotAI:
-    def __init__(self, difficulty="easy"):
+    def __init__(self, difficulty="easy", player_color=chess.WHITE):
         self.board = chess.Board()
         self.difficulty = difficulty
+        self.player_color = player_color
         
         try:
             self.engine = chess.engine.SimpleEngine.spawn_uci(STOCKFISH_PATH)
@@ -34,7 +35,6 @@ class ChessRobotAI:
             raise ValueError("Mode inconnu.")
 
     def format_move_description(self, move, actor_prefix):
-        """Formate le texte sous la forme : [Pièce] [départ] en [arrivée]"""
         piece = self.board.piece_at(move.from_square)
         if not piece:
             return str(move)
@@ -67,7 +67,6 @@ class ChessRobotAI:
         result = self.engine.play(self.board, self.limit)
         move = result.move
         
-        # Description avant de pousser sur le plateau
         description = self.format_move_description(move, "🤖 Robot")
         self.board.push(move)
         return description
@@ -91,17 +90,38 @@ class ChessRobotAI:
         self.engine.quit()
 
 if __name__ == "__main__":
-    print("=== ROBOT D'ÉCHECS ===")
-    print("1. Facile\n2. Intermédiaire\n3. Difficile")
-    choice = input("Votre choix (1, 2 ou 3) : ").strip()
+    print("=== CONFIGURATION DU ROBOT D'ÉCHECS ===")
     
-    diff_mode = "easy" if choice == "1" else ("hard" if choice == "3" else "intermediate")
-    robot = ChessRobotAI(difficulty=diff_mode)
+    # 1. Choix de la difficulté
+    print("Choisissez le niveau de difficulté :")
+    print("1. Facile")
+    print("2. Intermédiaire")
+    print("3. Difficile")
+    diff_choice = input("Votre choix (1, 2 ou 3) : ").strip()
+    diff_mode = "easy" if diff_choice == "1" else ("hard" if diff_choice == "3" else "intermediate")
     
-    print("\nL'échiquier est prêt. Entrez vos coups au format UCI (ex: 'e2e4'). Tapez 'exit' pour quitter.\n")
+    # 2. Choix de la couleur
+    print("\nChoisissez votre couleur :")
+    print("1. Blancs (Vous commencez)")
+    print("2. Noirs (Le robot commence)")
+    color_choice = input("Votre choix (1 ou 2) : ").strip()
+    player_color = chess.BLACK if color_choice == "2" else chess.WHITE
+    
+    robot = ChessRobotAI(difficulty=diff_mode, player_color=player_color)
+    
+    color_str = "Noirs" if player_color == chess.BLACK else "Blancs"
+    print(f"\nPartie lancée ! Vous jouez les {color_str}. Entrez vos coups au format UCI (ex: 'e2e4'). Tapez 'exit' pour quitter.\n")
 
     try:
         while not robot.board.is_game_over():
+            # Si c'est au tour du robot de jouer (ex: si le joueur est Noir et que c'est le début)
+            if robot.board.turn != robot.player_color:
+                robot_action_text = robot.play_robot_turn()
+                if robot_action_text:
+                    print(f"\n{robot_action_text}")
+                if robot.board.is_game_over():
+                    break
+
             print("\n" + str(robot.board))
             print("-" * 30)
             
@@ -111,13 +131,6 @@ if __name__ == "__main__":
                 
             if not robot.play_human_turn(human_move):
                 continue
-                
-            if robot.board.is_game_over():
-                break
-                
-            robot_action_text = robot.play_robot_turn()
-            if robot_action_text:
-                print(f"\n{robot_action_text}")
 
         print("\nPartie terminée !")
         print("Résultat :", robot.board.result())
