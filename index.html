@@ -1,1 +1,299 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot d'Échecs - Interface de Contrôle</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --accent-color: #c5a059;
+            --accent-hover: #d4af37;
+            --text-color: #e0e0e0;
+            --text-muted: #888;
+            --board-light: #f0d9b5;
+            --board-dark: #b58863;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            color: var(--accent-color);
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .main-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        /* Plateau d'échecs visuel */
+        .board-container {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 4px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .square.light {
+            background-color: var(--board-light);
+            color: #000;
+        }
+
+        .square.dark {
+            background-color: var(--board-dark);
+            color: #000;
+        }
+
+        .square:hover {
+            opacity: 0.85;
+        }
+
+        /* Panneau de contrôle */
+        .control-panel {
+            background: var(--panel-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            color: var(--accent-color);
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-mode {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #444;
+            background: #2a2a2a;
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-mode.active {
+            border-color: var(--accent-color);
+            background: rgba(197, 160, 89, 0.15);
+            color: var(--accent-color);
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn-action:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* Journal des coups */
+        .log-box {
+            background: #121212;
+            border: 1px solid #333;
+            border-radius: 8px;
+            height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: #2ecc71;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #2ecc71;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🤖 Chess Robot Dashboard</h1>
+        <p>Interface de contrôle et de suivi du robot d'échecs</p>
+    </header>
+
+    <div class="main-container">
+        <!-- Échiquier visuel -->
+        <div class="board-container">
+            <div class="chessboard" id="chessboard">
+                <!-- Généré par JavaScript -->
+            </div>
+        </div>
+
+        <!-- Panneau de contrôle -->
+        <div class="control-panel">
+            <div>
+                <div class="section-title">État du système</div>
+                <div class="status-indicator">
+                    <div class="dot"></div>
+                    <span>Moteur Stockfish : <strong>Prêt</strong></span>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Sélection de la difficulté</div>
+                <div class="mode-selector">
+                    <button class="btn-mode active" onclick="setMode('intermediate', this)">Intermédiaire</button>
+                    <button class="btn-mode" onclick="setMode('hard', this)">Difficile</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Actions</div>
+                <button class="btn-action" onclick="startNewGame()">Nouvelle Partie</button>
+            </div>
+
+            <div>
+                <div class="section-title">Journal des coups</div>
+                <div class="log-box" id="logBox">
+                    [System] Interface initialisée avec succès.<br>
+                    [System] En attente du premier coup...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Représentation visuelle simple des pièces Unicode
+        const pieces = {
+            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+            'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+        };
+
+        // Position de départ standard des échecs
+        const initialBoard = [
+            ['r','n','b','q','k','b','n','r'],
+            ['p','p','p','p','p','p','p','p'],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['','','','','','','',''],
+            ['P','P','P','P','P','P','P','P'],
+            ['R','N','B','Q','K','B','N','R']
+        ];
+
+        function createBoard() {
+            const boardElement = document.getElementById('chessboard');
+            boardElement.innerHTML = '';
+
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    const isDark = (row + col) % 2 === 1;
+                    square.className = `square ${isDark ? 'dark' : 'light'}`;
+                    
+                    const pieceChar = initialBoard[row][col];
+                    if (pieceChar) {
+                        square.textContent = pieces[pieceChar];
+                    }
+                    
+                    boardElement.appendChild(square);
+                }
+            }
+        }
+
+        function setMode(mode, btn) {
+            document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const logBox = document.getElementById('logBox');
+            const modeName = mode === 'intermediate' ? 'Mode Intermédiaire (Niveau 12)' : 'Mode Difficile (Niveau Max)';
+            logBox.innerHTML += `<br>[System] Difficulté changée : ${modeName}`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function startNewGame() {
+            const logBox = document.getElementById('logBox');
+            logBox.innerHTML += `<br>[System] Nouvelle partie lancée. Les Blancs commencent.`;
+            logBox.scrollTop = logBox.scrollHeight;
+            createBoard();
+        }
+
+        // Initialisation au chargement de la page
+        window.onload = createBoard;
+    </script>
+</body>
+</html>
