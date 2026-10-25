@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot d'Échecs - Console</title>
+    <title>Robot d'Échecs - Console Interactive</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -38,7 +38,7 @@
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.6);
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -130,13 +130,13 @@
             background: #121212;
             border: 1px solid #333;
             border-radius: 8px;
-            height: 250px;
+            height: 280px;
             overflow-y: auto;
             padding: 12px;
             font-family: monospace;
             font-size: 0.9rem;
             color: #ccc;
-            line-height: 1.5;
+            line-height: 1.6;
         }
     </style>
 </head>
@@ -145,10 +145,9 @@
     <div class="main-container">
         <header>
             <h1>🤖 Chess Robot Console</h1>
-            <p>Interface textuelle de pilotage de votre robot</p>
+            <p>Journal d'échanges détaillé des mouvements</p>
         </header>
 
-        <!-- Sélection de la difficulté -->
         <div>
             <div class="section-title">Difficulté du robot</div>
             <div class="mode-selector">
@@ -158,7 +157,6 @@
             </div>
         </div>
 
-        <!-- Zone de saisie du coup -->
         <div>
             <div class="section-title">Entrer votre coup</div>
             <div class="input-group">
@@ -167,21 +165,28 @@
             </div>
         </div>
 
-        <!-- Journal de la partie -->
         <div>
             <div class="section-title">Journal de la partie</div>
             <div class="log-box" id="logBox">
-                [System] Prêt. Mode Facile sélectionné par défaut.<br>
+                [System] Prêt. Mode Facile sélectionné.<br>
                 [System] Entrez votre premier coup (ex: e2e4).
             </div>
         </div>
     </div>
 
-    <!-- Bibliothèque de gestion des échecs (utilisée en arrière-plan) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
         const game = new Chess();
         let currentDifficulty = 'easy';
+
+        const pieceNamesFr = {
+            'p': 'Pion',
+            'n': 'Cavalier',
+            'b': 'Fou',
+            'r': 'Tour',
+            'q': 'Dame',
+            'k': 'Roi'
+        };
 
         function log(message) {
             const logBox = document.getElementById('logBox');
@@ -195,16 +200,30 @@
             currentDifficulty = mode;
             
             const modeNames = {
-                'easy': 'Facile (Erreurs fréquentes / Niveau débutant)',
-                'intermediate': 'Intermédiaire (Niveau modéré)',
-                'hard': 'Difficile (Pleine puissance)'
+                'easy': 'Facile',
+                'intermediate': 'Intermédiaire',
+                'hard': 'Difficile'
             };
-            log(`[System] Difficulté changée : ${modeNames[mode]}`);
+            log(`[System] Mode basculé sur : ${modeNames[mode]}`);
         }
 
         function checkEnter(event) {
             if (event.key === 'Enter') {
                 submitMove();
+            }
+        }
+
+        // Formate l'affichage : "Pièce départ en arrivée" (ex: Pion e2 en e4)
+        function formatMoveDescription(moveObj, actor) {
+            const pieceName = pieceNamesFr[moveObj.piece] || 'Pièce';
+            const fromSq = moveObj.from;
+            const toSq = moveObj.to;
+
+            if (moveObj.captured) {
+                const capturedName = pieceNamesFr[moveObj.captured] || 'pion';
+                return `${actor} : ${pieceName} ${fromSq} en ${toSq} (capture ${capturedName})`;
+            } else {
+                return `${actor} : ${pieceName} ${fromSq} en ${toSq}`;
             }
         }
 
@@ -214,14 +233,18 @@
             if (!moveStr) return;
 
             try {
-                let move = game.move(moveStr, { sloppy: true });
+                // On récupère l'objet du coup avant de le valider définitivement
+                let tempGameForHuman = new Chess(game.fen());
+                let moveObj = tempGameForHuman.move(moveStr, { sloppy: true });
                 
-                if (move === null) {
+                if (moveObj === null) {
                     log(`❌ Coup illégal ou invalide : "${moveStr}"`);
                     return;
                 }
 
-                log(`👤 Vous : <b>${move.san}</b> (${moveStr})`);
+                // Joue le coup sur la vraie partie
+                game.move(moveStr, { sloppy: true });
+                log(`👤 <b>${formatMoveDescription(moveObj, "Vous")}</b>`);
                 input.value = '';
 
                 if (game.game_over()) {
@@ -229,23 +252,15 @@
                     return;
                 }
 
-                // Simulation de la réponse du robot selon la difficulté
-                log(`🤖 Le robot réfléchit (${currentDifficulty})...`);
+                log(`<i>Le robot réfléchit (${currentDifficulty})...</i>`);
                 setTimeout(() => {
-                    const possibleMoves = game.moves();
+                    const possibleMoves = game.verbose_moves();
                     if (possibleMoves.length > 0) {
-                        let chosenMove;
-                        
-                        // En mode facile, le robot choisit souvent un coup aléatoire ou moins optimisé
-                        if (currentDifficulty === 'easy') {
-                            chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                        } else {
-                            // Simulation pour les autres modes (prend le premier pour l'exemple front-end)
-                            chosenMove = possibleMoves[0];
-                        }
+                        let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        game.move(chosenMoveObj);
 
-                        game.move(chosenMove);
-                        log(`🤖 Robot : <b>${chosenMove}</b>`);
+                        const robotDesc = formatMoveDescription(chosenMoveObj, "🤖 Robot");
+                        log(`<b>${robotDesc}</b>`);
                     }
                 }, 600);
 
