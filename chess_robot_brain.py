@@ -7,7 +7,7 @@ STOCKFISH_PATH = "stockfish"
 class ChessRobotAI:
     def __init__(self, skill_level=5, player_color=chess.WHITE):
         self.board = chess.Board()
-        self.skill_level = max(1, min(20, skill_level)) # Sécurité : entre 1 et 20
+        self.skill_level = max(1, min(20, skill_level)) # Entre 1 et 20
         self.player_color = player_color
         
         try:
@@ -19,12 +19,20 @@ class ChessRobotAI:
         self.configure_difficulty()
 
     def configure_difficulty(self):
-        # Configuration directe du niveau Stockfish (1 à 20)
-        self.engine.configure({"Skill Level": self.skill_level})
-        # Ajustement dynamique du temps de réflexion en fonction du niveau choisi
-        time_limit = 0.1 + (self.skill_level * 0.1)  # de 0.2s (niveau 1) à 2.1s (niveau 20)
+        # Mappe le niveau utilisateur (1-20) sur le Skill Level de Stockfish (0 à 20)
+        sf_skill = int((self.skill_level - 1) * 20 / 19)
+        self.engine.configure({"Skill Level": sf_skill})
+        time_limit = 0.1 + (self.skill_level * 0.08)
         self.limit = chess.engine.Limit(time=time_limit)
-        print(f"🤖 [biche_chess] Niveau Stockfish {self.skill_level}/20 activé.")
+        
+        # Correspondance textuelle Elo Chess.com pour l'affichage console
+        elo_map = {
+            1: "250 Elo", 2: "400 Elo", 3: "600 Elo", 4: "800 Elo", 5: "1000 Elo",
+            6: "1200 Elo", 7: "1400 Elo", 8: "1550 Elo", 9: "1700 Elo", 10: "1850 Elo",
+            11: "2000 Elo", 12: "2150 Elo", 13: "2300 Elo", 14: "2450 Elo", 15: "2600 Elo",
+            16: "2750 Elo", 17: "2850 Elo", 18: "2950 Elo", 19: "3050 Elo", 20: "3200 Elo (Max)"
+        }
+        print(f"🤖 [biche_chess] Niveau {self.skill_level} ({elo_map.get(self.skill_level, '')}) activé.")
 
     def format_move_description(self, move, actor_prefix):
         piece = self.board.piece_at(move.from_square)
