@@ -88,26 +88,64 @@
             font-weight: 600;
         }
 
+        /* --- STYLES DU SLIDER DE DIFFICULTÉ --- */
+        .slider-box {
+            background: var(--input-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .skill-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            background: #16120e;
+            height: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--panel-border);
+            outline: none;
+        }
+
+        .skill-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(0,0,0,0.6);
+            transition: transform 0.2s;
+        }
+
+        .skill-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: var(--accent-hover);
+        }
+
+        .slider-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        #sliderValueDisplay {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.05rem;
+        }
+
         .options-group {
-            display: grid;
-            grid-template-columns: 1fr;
+            display: flex;
             gap: 8px;
         }
 
-        @media (min-width: 500px) {
-            .options-group { grid-template-columns: repeat(3, 1fr); }
-        }
-
-        .options-group.colors {
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (min-width: 500px) {
-            .options-group.colors { flex-direction: row; }
-        }
-
         .btn-option {
+            flex: 1;
             padding: 12px 10px;
             border: 1px solid var(--panel-border);
             background: #2d241c;
@@ -238,18 +276,17 @@
             font-weight: bold;
         }
 
-        /* Style des symboles de pièces */
         .chess-symbol {
             font-size: 1.2rem;
             margin-right: 6px;
             vertical-align: middle;
         }
         .piece-white {
-            color: #e5c158; /* Doré pour vous */
+            color: #e5c158;
             text-shadow: 0 0 2px rgba(0,0,0,0.8);
         }
         .piece-black {
-            color: #c59b27; /* Bronze pour le robot */
+            color: #c59b27;
             text-shadow: 0 0 2px rgba(0,0,0,0.8);
         }
 
@@ -267,19 +304,22 @@
         <!-- ÉCRAN DE CONFIGURATION -->
         <div id="setupScreen" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
-                <div class="section-title">1. Choisissez la difficulté du robot</div>
-                <div class="options-group" id="difficultySelector">
-                    <button class="btn-option active" data-diff="easy">Facile</button>
-                    <button class="btn-option" data-diff="intermediate">Intermédiaire</button>
-                    <button class="btn-option" data-diff="hard">Difficile</button>
+                <div class="section-title">1. Niveau de difficulté (1 à 20)</div>
+                <div class="slider-box">
+                    <input type="range" id="skillSlider" min="1" max="20" value="5" class="skill-slider">
+                    <div class="slider-info">
+                        <span>Débutant (1)</span>
+                        <span id="sliderValueDisplay">Niveau 5</span>
+                        <span>Max (20)</span>
+                    </div>
                 </div>
             </div>
 
             <div>
                 <div class="section-title">2. Choisissez votre couleur</div>
                 <div class="options-group colors" id="colorSelector">
-                    <button class="btn-option active" style="flex:1;" data-color="white">Blancs (Vous commencez)</button>
-                    <button class="btn-option" style="flex:1;" data-color="black">Noirs (Le robot commence)</button>
+                    <button class="btn-option active" data-color="white">Blancs (Vous commencez)</button>
+                    <button class="btn-option" data-color="black">Noirs (Le robot commence)</button>
                 </div>
             </div>
 
@@ -313,33 +353,28 @@
     <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
     <script>
         let game = null;
-        let currentDifficulty = 'easy';
+        let currentSkillLevel = 5;
         let playerColor = 'white';
 
         const pieceNamesFr = {
             'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi'
         };
 
-        // Correspondance des symboles Unicode pour les échecs
         const whiteSymbols = { 'p': '♙', 'n': '♘', 'b': '♗', 'r': '♖', 'q': '♕', 'k': '♔' };
         const blackSymbols = { 'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
 
-        const diffNames = {
-            'easy': 'Facile',
-            'intermediate': 'Intermédiaire',
-            'hard': 'Difficile'
-        };
-
         function initApp() {
-            const diffButtons = document.querySelectorAll('#difficultySelector .btn-option');
-            diffButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    diffButtons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentDifficulty = this.getAttribute('data-diff');
+            // Gestion du Slider
+            const slider = document.getElementById('skillSlider');
+            const sliderDisplay = document.getElementById('sliderValueDisplay');
+            if (slider) {
+                slider.addEventListener('input', function() {
+                    currentSkillLevel = parseInt(this.value);
+                    sliderDisplay.textContent = `Niveau ${currentSkillLevel}`;
                 });
-            });
+            }
 
+            // Gestion des boutons de couleur
             const colorButtons = document.querySelectorAll('#colorSelector .btn-option');
             colorButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -380,7 +415,7 @@
             document.getElementById('gameScreen').classList.remove('hidden');
             
             const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
-            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;
+            document.getElementById('headerSubtitle').textContent = `Niveau : ${currentSkillLevel}/20 | Vous jouez les ${colorName}`;
             document.getElementById('logEntries').innerHTML = '';
 
             if (playerColor === 'black') {
