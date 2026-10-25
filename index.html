@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot d'Échecs - Interface de Contrôle</title>
+    <title>Robot d'Échecs - Partie Interactive</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -58,7 +58,6 @@
             width: 100%;
         }
 
-        /* Plateau d'échecs visuel */
         .board-container {
             background: var(--panel-bg);
             padding: 20px;
@@ -80,7 +79,6 @@
             align-items: center;
             justify-content: center;
             font-size: 38px;
-            cursor: pointer;
             user-select: none;
         }
 
@@ -94,18 +92,13 @@
             color: #000;
         }
 
-        .square:hover {
-            opacity: 0.85;
-        }
-
-        /* Panneau de contrôle */
         .control-panel {
             background: var(--panel-bg);
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.5);
             flex: 1;
-            min-width: 300px;
+            min-width: 320px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -126,7 +119,7 @@
 
         .btn-mode {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border: 2px solid #444;
             background: #2a2a2a;
             color: var(--text-color);
@@ -142,15 +135,33 @@
             color: var(--accent-color);
         }
 
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            background: #121212;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+
         .btn-action {
-            width: 100%;
-            padding: 14px;
+            padding: 12px 20px;
             background-color: var(--accent-color);
             color: #121212;
             border: none;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 1rem;
             cursor: pointer;
             transition: background 0.3s ease;
         }
@@ -159,62 +170,37 @@
             background-color: var(--accent-hover);
         }
 
-        /* Journal des coups */
         .log-box {
             background: #121212;
             border: 1px solid #333;
             border-radius: 8px;
-            height: 150px;
+            height: 160px;
             overflow-y: auto;
             padding: 10px;
             font-family: monospace;
             font-size: 0.9rem;
-            color: #aaa;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.95rem;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            background-color: #2ecc71;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #2ecc71;
+            color: #ccc;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🤖 Chess Robot Dashboard</h1>
-        <p>Interface de contrôle et de suivi du robot d'échecs</p>
+        <h1>🤖 Chess Robot Interface</h1>
+        <p>Jouez contre votre robot en entrant vos coups (ex: e2e4)</p>
     </header>
 
     <div class="main-container">
         <!-- Échiquier visuel -->
         <div class="board-container">
-            <div class="chessboard" id="chessboard">
-                <!-- Généré par JavaScript -->
-            </div>
+            <div class="chessboard" id="chessboard"></div>
         </div>
 
         <!-- Panneau de contrôle -->
         <div class="control-panel">
             <div>
-                <div class="section-title">État du système</div>
-                <div class="status-indicator">
-                    <div class="dot"></div>
-                    <span>Moteur Stockfish : <strong>Prêt</strong></span>
-                </div>
-            </div>
-
-            <div>
-                <div class="section-title">Sélection de la difficulté</div>
+                <div class="section-title">Difficulté du robot</div>
                 <div class="mode-selector">
                     <button class="btn-mode active" onclick="setMode('intermediate', this)">Intermédiaire</button>
                     <button class="btn-mode" onclick="setMode('hard', this)">Difficile</button>
@@ -222,42 +208,35 @@
             </div>
 
             <div>
-                <div class="section-title">Actions</div>
-                <button class="btn-action" onclick="startNewGame()">Nouvelle Partie</button>
+                <div class="section-title">Jouer votre coup</div>
+                <div class="input-group">
+                    <input type="text" id="moveInput" placeholder="ex: e2e4" onkeypress="checkEnter(event)">
+                    <button class="btn-action" onclick="submitMove()">Envoyer</button>
+                </div>
             </div>
 
             <div>
-                <div class="section-title">Journal des coups</div>
+                <div class="section-title">Journal de la partie</div>
                 <div class="log-box" id="logBox">
-                    [System] Interface initialisée avec succès.<br>
-                    [System] En attente du premier coup...
+                    [System] Prêt. Entrez votre premier coup (ex: e2e4).
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Intégration d'une bibliothèque JavaScript légère pour simuler la logique des échecs (chess.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
-        // Représentation visuelle simple des pièces Unicode
+        const game = new Chess();
         const pieces = {
             'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
             'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
         };
 
-        // Position de départ standard des échecs
-        const initialBoard = [
-            ['r','n','b','q','k','b','n','r'],
-            ['p','p','p','p','p','p','p','p'],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['P','P','P','P','P','P','P','P'],
-            ['R','N','B','Q','K','B','N','R']
-        ];
-
-        function createBoard() {
+        function updateBoard() {
             const boardElement = document.getElementById('chessboard');
             boardElement.innerHTML = '';
+            const boardData = game.board();
 
             for (let row = 0; row < 8; row++) {
                 for (let col = 0; col < 8; col++) {
@@ -265,9 +244,10 @@
                     const isDark = (row + col) % 2 === 1;
                     square.className = `square ${isDark ? 'dark' : 'light'}`;
                     
-                    const pieceChar = initialBoard[row][col];
-                    if (pieceChar) {
-                        square.textContent = pieces[pieceChar];
+                    const piece = boardData[row][col];
+                    if (piece) {
+                        const symbolKey = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
+                        square.textContent = pieces[symbolKey];
                     }
                     
                     boardElement.appendChild(square);
@@ -275,25 +255,68 @@
             }
         }
 
+        function log(message) {
+            const logBox = document.getElementById('logBox');
+            logBox.innerHTML += `<br>${message}`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
         function setMode(mode, btn) {
             document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            const logBox = document.getElementById('logBox');
-            const modeName = mode === 'intermediate' ? 'Mode Intermédiaire (Niveau 12)' : 'Mode Difficile (Niveau Max)';
-            logBox.innerHTML += `<br>[System] Difficulté changée : ${modeName}`;
-            logBox.scrollTop = logBox.scrollHeight;
+            log(`[System] Mode basculé sur : ${mode === 'intermediate' ? 'Intermédiaire' : 'Difficile'}`);
         }
 
-        function startNewGame() {
-            const logBox = document.getElementById('logBox');
-            logBox.innerHTML += `<br>[System] Nouvelle partie lancée. Les Blancs commencent.`;
-            logBox.scrollTop = logBox.scrollHeight;
-            createBoard();
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                submitMove();
+            }
         }
 
-        // Initialisation au chargement de la page
-        window.onload = createBoard;
+        function submitMove() {
+            const input = document.getElementById('moveInput');
+            const moveStr = input.value.trim();
+            if (!moveStr) return;
+
+            // Tentative de jouer le coup humain
+            try {
+                // On essaie de parser au format UCI (ex: e2e4) ou SAN (ex: e4)
+                let move = game.move(moveStr, { sloppy: true });
+                
+                if (move === null) {
+                    log(`❌ Coup illégal ou invalide : "${moveStr}"`);
+                    return;
+                }
+
+                log(`👤 Vous avez joué : <b>${move.san}</b> (${moveStr})`);
+                input.value = '';
+                updateBoard();
+
+                if (game.game_over()) {
+                    log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
+                    return;
+                }
+
+                // Simulation de la réponse du robot (Dans la vraie version, cela appellera Stockfish via Python)
+                log(`🤖 Le robot réfléchit...`);
+                setTimeout(() => {
+                    const possibleMoves = game.moves();
+                    if (possibleMoves.length > 0) {
+                        // Choix d'un coup aléatoire pour la simulation front-end (ou simulant le moteur)
+                        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        game.move(randomMove);
+                        log(`🤖 Le robot a joué : <b>${randomMove}</b>`);
+                        updateBoard();
+                    }
+                }, 600);
+
+            } catch (e) {
+                log(`❌ Erreur de format de coup.`);
+            }
+        }
+
+        // Initialisation de l'affichage au chargement
+        window.onload = updateBoard;
     </script>
 </body>
 </html>
