@@ -88,7 +88,6 @@
             font-weight: 600;
         }
 
-        /* --- STYLES DU SLIDER DE DIFFICULTÉ --- */
         .slider-box {
             background: var(--input-bg);
             border: 1px solid var(--panel-border);
@@ -221,7 +220,6 @@
             border: none !important;
         }
 
-        /* --- STYLES DU MONITEUR TACTIQUE --- */
         .log-box {
             background-color: var(--log-panel-bg);
             border: 1px solid var(--log-border);
@@ -304,13 +302,13 @@
         <!-- ÉCRAN DE CONFIGURATION -->
         <div id="setupScreen" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
-                <div class="section-title">1. Niveau de difficulté (1 à 20)</div>
+                <div class="section-title">1. Niveau de difficulté (Style Chess.com)</div>
                 <div class="slider-box">
                     <input type="range" id="skillSlider" min="1" max="20" value="5" class="skill-slider">
                     <div class="slider-info">
-                        <span>Débutant (1)</span>
-                        <span id="sliderValueDisplay">Niveau 5</span>
-                        <span>Max (20)</span>
+                        <span>Niv. 1 (250 Elo)</span>
+                        <span id="sliderValueDisplay">Niveau 5 (1000 Elo)</span>
+                        <span>Niv. 20 (3200 Elo)</span>
                     </div>
                 </div>
             </div>
@@ -356,6 +354,30 @@
         let currentSkillLevel = 5;
         let playerColor = 'white';
 
+        // Correspondance style Chess.com pour chaque niveau de 1 à 20
+        const chessComEloMap = {
+            1: "250 Elo",
+            2: "400 Elo",
+            3: "600 Elo",
+            4: "800 Elo",
+            5: "1000 Elo",
+            6: "1200 Elo",
+            7: "1400 Elo",
+            8: "1550 Elo",
+            9: "1700 Elo",
+            10: "1850 Elo",
+            11: "2000 Elo",
+            12: "2150 Elo",
+            13: "2300 Elo",
+            14: "2450 Elo",
+            15: "2600 Elo",
+            16: "2750 Elo",
+            17: "2850 Elo",
+            18: "2950 Elo",
+            19: "3050 Elo",
+            20: "3200 Elo (Max)"
+        };
+
         const pieceNamesFr = {
             'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi'
         };
@@ -364,17 +386,16 @@
         const blackSymbols = { 'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
 
         function initApp() {
-            // Gestion du Slider
             const slider = document.getElementById('skillSlider');
             const sliderDisplay = document.getElementById('sliderValueDisplay');
             if (slider) {
                 slider.addEventListener('input', function() {
                     currentSkillLevel = parseInt(this.value);
-                    sliderDisplay.textContent = `Niveau ${currentSkillLevel}`;
+                    const eloText = chessComEloMap[currentSkillLevel] || "";
+                    sliderDisplay.textContent = `Niveau ${currentSkillLevel} (${eloText})`;
                 });
             }
 
-            // Gestion des boutons de couleur
             const colorButtons = document.querySelectorAll('#colorSelector .btn-option');
             colorButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -415,7 +436,8 @@
             document.getElementById('gameScreen').classList.remove('hidden');
             
             const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
-            document.getElementById('headerSubtitle').textContent = `Niveau : ${currentSkillLevel}/20 | Vous jouez les ${colorName}`;
+            const eloText = chessComEloMap[currentSkillLevel];
+            document.getElementById('headerSubtitle').textContent = `Niveau ${currentSkillLevel} (${eloText}) | Vous jouez les ${colorName}`;
             document.getElementById('logEntries').innerHTML = '';
 
             if (playerColor === 'black') {
