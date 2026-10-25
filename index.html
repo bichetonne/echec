@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>biche_chess - Console</title>
+    <title>biche_chess - Moniteur Tactique</title>
     <style>
         :root {
             --bg-color: #16120e;
@@ -14,6 +14,12 @@
             --text-color: #f0e6d2;
             --text-muted: #a39580;
             --input-bg: #120e0a;
+            
+            /* Couleurs spécifiques au Moniteur Tactique */
+            --log-panel-bg: rgba(35, 28, 21, 0.7); /* Fond sombre semi-transparent */
+            --log-border: rgba(74, 56, 38, 0.5);
+            --log-text: #d1c7b7;
+            --log-highlight: rgba(212, 175, 55, 0.1); /* Surlignage léger des lignes */
         }
 
         * {
@@ -178,24 +184,106 @@
             border: none !important;
         }
 
+        /* --- STYLES DU MONITEUR TACTIQUE (Log Box) --- */
         .log-box {
-            background: var(--input-bg);
-            border: 1px solid var(--panel-border);
+            background-color: var(--log-panel-bg);
+            background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"%3E%3Cg fill-rule="evenodd"%3E%3Cg fill="%23d4af37" fill-opacity="0.05"%3E%3Cpath d="M0 0h40v40H0V0zm40 20H0v20h40V20zM20 0v40h20V0H20zM0 20h20v20H0V20z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E'); /* Texture grille subtile */
+            border: 1px solid var(--log-border);
             border-radius: 8px;
-            height: 250px;
+            height: 300px; /* Un peu plus haut */
             overflow-y: auto;
-            padding: 12px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.85rem;
-            color: #d1c7b7;
-            line-height: 1.6;
+            padding: 0; /* On enlève le padding par défaut */
+            font-family: 'Courier New', Courier, monospace; /* Police technique */
+            color: var(--log-text);
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
         }
 
-        @media (min-width: 768px) {
-            .log-box {
-                height: 280px;
-                font-size: 0.9rem;
-            }
+        /* Ligne d'en-tête du journal */
+        .log-header {
+            display: grid;
+            grid-template-columns: 50px 1fr 1fr; /* N°, Vous, biche_chess */
+            padding: 8px 10px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid var(--log-border);
+            font-weight: bold;
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: sticky;
+            top: 0;
+        }
+
+        /* Conteneur des lignes de jeu */
+        .log-entries {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chaque ligne de coup (paire) */
+        .log-entry {
+            display: grid;
+            grid-template-columns: 50px 1fr 1fr;
+            padding: 6px 10px;
+            border-bottom: 1px solid rgba(74, 56, 38, 0.2);
+            font-size: 0.9rem;
+        }
+
+        /* Alternance des couleurs de lignes pour la lisibilité */
+        .log-entry:nth-child(even) {
+            background-color: var(--log-highlight);
+        }
+
+        /* Numéro de tour */
+        .log-move-num {
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        /* Colonne Joueur et IA */
+        .log-player-move, .log-ai-move {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Icônes de pièces stylisées (Gold pour joueur, Bronze pour IA) */
+        .chess-icon {
+            width: 18px;
+            height: 18px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            display: inline-block;
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+        }
+
+        /* -- Icônes Joueur (Dorées) -- */
+        .icon-p-w { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M22.5 9c-3.513 0-6.375 2.862-6.375 6.375 0 1.587.593 3.05 1.575 4.156L17.718 30H27.28l1.013-10.469c.982-1.105 1.575-2.569 1.575-4.156C28.875 11.862 26.013 9 22.5 9z" fill="%23e5c158" stroke="%234a3826" stroke-width="1.5"/%3E%3C/svg%3E'); }
+        .icon-n-w { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M22.5 11.25l11.25 6.75v15.75l-4.5 2.25v-9l-6.75-2.25-6.75 2.25v9l-4.5-2.25V18l11.25-6.75zm-6.75 9l6.75 2.25 6.75-2.25M9 36h27M22.5 7.875L33.75 3h-22.5L22.5 7.875z" fill="%23e5c158" stroke="%234a3826" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E'); }
+        .icon-b-w { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cpath d="M9 36c3.375-3.375 5.625-5.625 5.625-5.625S21.375 27 27 32.625l-3.375 4.5h9V31.5l-3.375-5.625 5.625-6.75 5.625 6.75-3.375 5.625v5.625h4.5L39 31.5c5.625-5.625 7.875-7.875 7.875-7.875" fill="%23e5c158" stroke="%234a3826" stroke-width="1.5"/%3E%3Cpath d="M27 11.25a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0z" fill="%2316120e" stroke="%234a3826" stroke-width="1.5"/%3E%3C/g%3E%3C/svg%3E'); }
+        .icon-r-w { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M13.5 36h18v6H13.5zM9 9h27v9H9zm0 18h27v9H9z" fill="%23e5c158" stroke="%234a3826" stroke-width="1.5"/%3E%3Cpath d="M11.25 18l1.688 13.5h19.125L33.75 18M9 10.125v2.812l9.563 6.188M36 10.125v2.812L26.438 19.125" fill="none" stroke="%234a3826" stroke-width="1.5" stroke-linecap="round"/%3E%3C/svg%3E'); }
+        .icon-q-w { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M11.25 30l4.5-11.25L22.5 30l6.75-11.25 4.5 11.25M9 36h27M22.5 3.375l6.75 6.75-3.375 3.375 6.75 6.75-9-6.75-9 6.75 6.75-6.75-3.375-3.375 6.75-6.75z" fill="%23e5c158" stroke="%234a3826" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E'); }
+        .icon-k-w { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M22.5 6.75v24.75m-12.375-12.375h24.75" fill="none" stroke="%23e5c158" stroke-width="1.8" stroke-linecap="round"/%3E%3Cpath d="M31.875 19.125L36 13.5l4.5 5.625L31.875 30l4.5 1.125v-9L31.875 19.125zm-18.75 0L9 13.5l-4.5 5.625L13.125 30L9 31.125v-9l4.125-3z" fill="%23e5c158" stroke="%234a3826" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E'); }
+
+        /* -- Icônes IA (Bronze) -- */
+        .icon-p-b { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M22.5 9c-3.513 0-6.375 2.862-6.375 6.375 0 1.587.593 3.05 1.575 4.156L17.718 30H27.28l1.013-10.469c.982-1.105 1.575-2.569 1.575-4.156C28.875 11.862 26.013 9 22.5 9z" fill="%23c59b27" stroke="%234a3826" stroke-width="1.5"/%3E%3C/svg%3E'); }
+        .icon-n-b { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M22.5 11.25l11.25 6.75v15.75l-4.5 2.25v-9l-6.75-2.25-6.75 2.25v9l-4.5-2.25V18l11.25-6.75zm-6.75 9l6.75 2.25 6.75-2.25M9 36h27M22.5 7.875L33.75 3h-22.5L22.5 7.875z" fill="%23c59b27" stroke="%234a3826" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E'); }
+        .icon-b-b { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cpath d="M9 36c3.375-3.375 5.625-5.625 5.625-5.625S21.375 27 27 32.625l-3.375 4.5h9V31.5l-3.375-5.625 5.625-6.75 5.625 6.75-3.375 5.625v5.625h4.5L39 31.5c5.625-5.625 7.875-7.875 7.875-7.875" fill="%23c59b27" stroke="%234a3826" stroke-width="1.5"/%3E%3Cpath d="M27 11.25a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0z" fill="%2316120e" stroke="%234a3826" stroke-width="1.5"/%3E%3C/g%3E%3C/svg%3E'); }
+        .icon-r-b { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M13.5 36h18v6H13.5zM9 9h27v9H9zm0 18h27v9H9z" fill="%23c59b27" stroke="%234a3826" stroke-width="1.5"/%3E%3Cpath d="M11.25 18l1.688 13.5h19.125L33.75 18M9 10.125v2.812l9.563 6.188M36 10.125v2.812L26.438 19.125" fill="none" stroke="%234a3826" stroke-width="1.5" stroke-linecap="round"/%3E%3C/svg%3E'); }
+        .icon-q-b { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M11.25 30l4.5-11.25L22.5 30l6.75-11.25 4.5 11.25M9 36h27M22.5 3.375l6.75 6.75-3.375 3.375 6.75 6.75-9-6.75-9 6.75 6.75-6.75-3.375-3.375 6.75-6.75z" fill="%23c59b27" stroke="%234a3826" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E'); }
+        .icon-k-b { background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"%3E%3Cpath d="M22.5 6.75v24.75m-12.375-12.375h24.75" fill="none" stroke="%23c59b27" stroke-width="1.8" stroke-linecap="round"/%3E%3Cpath d="M31.875 19.125L36 13.5l4.5 5.625L31.875 30l4.5 1.125v-9L31.875 19.125zm-18.75 0L9 13.5l-4.5 5.625L13.125 30L9 31.125v-9l4.125-3z" fill="%23c59b27" stroke="%234a3826" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E'); }
+
+        .capture-mark {
+            color: #cc4444; /* Rouge pour les captures */
+            font-weight: bold;
+            font-size: 0.7rem;
+            margin-left: 2px;
         }
 
         .hidden { display: none !important; }
@@ -242,9 +330,17 @@
             </div>
 
             <div>
-                <div class="section-title">Journal de la partie</div>
+                <div class="section-title">Moniteur Tactique</div>
+                <!-- LE JOURNAL REDESIGNÉ -->
                 <div class="log-box" id="logBox">
-                    [System] biche_chess initialisé. Prêt à jouer.
+                    <div class="log-header">
+                        <div>Tour</div>
+                        <div>Vous</div>
+                        <div>biche_chess</div>
+                    </div>
+                    <div class="log-entries" id="logEntries">
+                        <!-- Les lignes de jeu seront ajoutées ici dynamiquement -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -256,8 +352,10 @@
         let currentDifficulty = 'easy';
         let playerColor = 'white';
 
-        const pieceNamesFr = {
-            'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi'
+        // Mappage des pièces chess.js vers nos icônes CSS
+        // suffix '-w' pour Joueur (doré), '-b' pour IA (bronze)
+        const iconClassMap = {
+            'p': 'p', 'n': 'n', 'b': 'b', 'r': 'r', 'q': 'q', 'k': 'k'
         };
 
         const diffNames = {
@@ -266,8 +364,7 @@
             'hard': 'Difficile'
         };
 
-        // Fonction d'initialisation sécurisée peu importe l'état du DOM
-        function initApp() {
+        document.addEventListener('DOMContentLoaded', function() {
             const diffButtons = document.querySelectorAll('#difficultySelector .btn-option');
             diffButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -286,39 +383,18 @@
                 });
             });
 
-            const startBtn = document.getElementById('startBtn');
-            if (startBtn) startBtn.addEventListener('click', startNewGame);
-
-            const sendBtn = document.getElementById('sendBtn');
-            if (sendBtn) sendBtn.addEventListener('click', submitMove);
-
-            const moveInput = document.getElementById('moveInput');
-            if (moveInput) {
-                moveInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        submitMove();
-                    }
-                });
-            }
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
-        } else {
-            initApp();
-        }
-
-        function log(message) {
-            const logBox = document.getElementById('logBox');
-            if (logBox) {
-                logBox.innerHTML += `<br>${message}`;
-                logBox.scrollTop = logBox.scrollHeight;
-            }
-        }
+            document.getElementById('startBtn').addEventListener('click', startNewGame);
+            document.getElementById('sendBtn').addEventListener('click', submitMove);
+            document.getElementById('moveInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitMove();
+                }
+            });
+        });
 
         function startNewGame() {
             if (typeof Chess === 'undefined') {
-                alert("Erreur : La bibliothèque chess.js ne s'est pas chargée. Vérifiez votre connexion Internet.");
+                alert("Erreur : La bibliothèque chess.js ne s'est pas chargée.");
                 return;
             }
             
@@ -327,77 +403,9 @@
             document.getElementById('gameScreen').classList.remove('hidden');
             
             const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
-            
-            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;
-            document.getElementById('logBox').innerHTML = `[biche_chess] Partie lancée ! Difficulté : ${diffNames[currentDifficulty]}. Vous jouez les ${colorName}.`;
-
-            if (playerColor === 'black') {
-                triggerRobotTurn();
-            }
-        }
-
-        function formatMoveDescription(moveObj, actor) {
-            const pieceName = pieceNamesFr[moveObj.piece] || 'Pièce';
-            const fromSq = moveObj.from;
-            const toSq = moveObj.to;
-
-            if (moveObj.captured) {
-                const capturedName = pieceNamesFr[moveObj.captured] || 'pion';
-                return `${actor} : ${pieceName} ${fromSq} en ${toSq} (capture ${capturedName})`;
-            } else {
-                return `${actor} : ${pieceName} ${fromSq} en ${toSq}`;
-            }
-        }
-
-        function submitMove() {
-            const input = document.getElementById('moveInput');
-            if (!input) return;
-            const moveStr = input.value.trim().toLowerCase();
-            if (!moveStr || !game) return;
-
-            try {
-                let tempGameForHuman = new Chess(game.fen());
-                let moveObj = tempGameForHuman.move(moveStr, { sloppy: true });
+            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;  // Réinitialisation du journal visuel document.getElementById('logEntries').innerHTML = '';  if (playerColor === 'black') { triggerRobotTurn(); } }  // --- Fonction d'ajout au journal REDESIGNÉE --- function logMoveToTacticalView(moveObj, isPlayer) { const logEntries = document.getElementById('logEntries'); let currentTurnEntry = null;  // On tente de trouver la dernière ligne ajoutée pour voir si le tour est complet const lastEntry = logEntries.lastElementChild;  // Si c'est le tour du joueur et que la dernière ligne n'existe pas ou est déjà complète avec un coup IA if (isPlayer) { const turnNum = Math.floor(game.history().length / 2) + 1; currentTurnEntry = document.createElement('div'); currentTurnEntry.classList.add('log-entry'); currentTurnEntry.id = `turn-${turnNum}`;
                 
-                if (moveObj === null) {
-                    log(`❌ Coup illégal ou invalide : "${input.value}"`);
-                    return;
-                }
-
-                game.move(moveStr, { sloppy: true });
-                log(`👤 <b>${formatMoveDescription(moveObj, "Vous")}</b>`);
-                input.value = '';
-
-                if (game.game_over()) {
-                    log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
-                    return;
-                }
-
-                triggerRobotTurn();
-
-            } catch (e) {
-                log(`❌ Erreur de format de coup.`);
-            }
-        }
-
-        function triggerRobotTurn() {
-            log(`<i>biche_chess réfléchit (${diffNames[currentDifficulty]})...</i>`);
-            setTimeout(() => {
-                if (!game) return;
-                const possibleMoves = game.moves({ verbose: true });
-                if (possibleMoves.length > 0) {
-                    let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                    game.move(chosenMoveObj);
-
-                    const robotDesc = formatMoveDescription(chosenMoveObj, "🤖 biche_chess");
-                    log(`<b>${robotDesc}</b>`);
-
-                    if (game.game_over()) {
-                        log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
-                    }
-                }
-            }, 600);
-        }
-    </script>
-</body>
-</html>
+                currentTurnEntry.innerHTML = `
+                    <div class="log-move-num">${turnNum}.</div>
+                    <div class="log-player-move" id="turn-${turnNum}-white"></div>
+                    <div class="log-
