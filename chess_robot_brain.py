@@ -7,10 +7,10 @@ import time
 STOCKFISH_PATH = "stockfish" 
 
 class ChessRobotAI:
-    def __init__(self, difficulty="intermediate"):
+    def __init__(self, difficulty="easy"):
         """
         Initialise le cerveau du robot d'échecs.
-        :param difficulty: "intermediate" (niveau modéré) ou "hard" (puissance maximale)
+        :param difficulty: "easy", "intermediate" ou "hard"
         """
         self.board = chess.Board()
         self.difficulty = difficulty
@@ -25,9 +25,14 @@ class ChessRobotAI:
 
     def configure_difficulty(self):
         """Configure les paramètres de Stockfish selon le mode choisi."""
-        if self.difficulty == "intermediate":
-            # Mode Intermédiaire : On bride Stockfish (Skill Level autour de 12 sur 20)
-            # On limite aussi légèrement le temps de calcul
+        if self.difficulty == "easy":
+            # Mode Facile : Stockfish débutant (Skill Level 3 sur 20)
+            self.engine.configure({"Skill Level": 3})
+            self.limit = chess.engine.Limit(time=0.2)
+            print("🤖 Mode Facile activé (Niveau 3 - Idéal pour débuter).")
+            
+        elif self.difficulty == "intermediate":
+            # Mode Intermédiaire : Niveau modéré (Skill Level 12)
             self.engine.configure({"Skill Level": 12})
             self.limit = chess.engine.Limit(time=0.5)
             print("🤖 Mode Intermédiaire activé (Niveau 12 - Erreurs tactiques possibles).")
@@ -38,7 +43,7 @@ class ChessRobotAI:
             self.limit = chess.engine.Limit(time=2.0)
             print("🤖 Mode Difficile activé (Niveau MAX - Ne pardonne rien).")
         else:
-            raise ValueError("Mode inconnu. Choisissez 'intermediate' ou 'hard'.")
+            raise ValueError("Mode inconnu. Choisissez 'easy', 'intermediate' ou 'hard'.")
 
     def play_robot_turn(self):
         """Calcule et joue le meilleur coup pour le robot."""
@@ -78,9 +83,20 @@ class ChessRobotAI:
 # --- Exemple de boucle de jeu en console ---
 if __name__ == "__main__":
     print("=== BIENVENUE DANS LE ROBOT D'ÉCHECS ===")
-    choice = input("Choisissez le mode (1 pour Intermédiaire, 2 pour Difficile) : ")
+    print("Choisissez le mode de difficulté :")
+    print("1. Facile")
+    print("2. Intermédiaire")
+    print("3. Difficile")
     
-    diff_mode = "hard" if choice == "2" else "intermediate"
+    choice = input("Votre choix (1, 2 ou 3) : ").strip()
+    
+    if choice == "1":
+        diff_mode = "easy"
+    elif choice == "3":
+        diff_mode = "hard"
+    else:
+        diff_mode = "intermediate"
+        
     robot = ChessRobotAI(difficulty=diff_mode)
     
     print("\nL'échiquier est prêt. Les Blancs sont aux échecs.")
