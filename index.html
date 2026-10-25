@@ -240,7 +240,7 @@
             <div>
                 <div class="section-title">Entrer votre coup</div>
                 <div class="input-group">
-                    <input type="text" id="moveInput" placeholder="ex: e2e4">
+                    <input type="text" id="moveInput" placeholder="ex: e2e4 ou E2E4">
                     <button class="btn-option btn-send" id="sendBtn" style="flex: 0; padding: 12px 18px;">Envoyer</button>
                 </div>
             </div>
@@ -254,7 +254,6 @@
         </div>
     </div>
 
-    <!-- Chargement de chess.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
     <script>
         let game = null;
@@ -276,14 +275,12 @@
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Vérification de chess.js
             if (typeof Chess === 'undefined') {
-                document.getElementById('logBox').innerHTML = "❌ Erreur : La bibliothèque chess.js ne s'est pas chargée (vérifiez votre connexion internet).";
+                document.getElementById('logBox').innerHTML = "❌ Erreur : La bibliothèque chess.js ne s'est pas chargée.";
                 return;
             }
             game = new Chess();
 
-            // Gestion des boutons de difficulté
             const diffButtons = document.querySelectorAll('#difficultySelector .btn-option');
             diffButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -293,7 +290,6 @@
                 });
             });
 
-            // Gestion des boutons de couleur
             const colorButtons = document.querySelectorAll('#colorSelector .btn-option');
             colorButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -303,13 +299,8 @@
                 });
             });
 
-            // Bouton de lancement
             document.getElementById('startBtn').addEventListener('click', startNewGame);
-
-            // Bouton d'envoi de coup
             document.getElementById('sendBtn').addEventListener('click', submitMove);
-
-            // Touche Entrée sur le champ de texte
             document.getElementById('moveInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     submitMove();
@@ -331,30 +322,17 @@
             
             const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
             
-            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;
-            document.getElementById('logBox').innerHTML = `[biche_chess] Partie lancée ! Difficulté : ${diffNames[currentDifficulty]}. Vous jouez les ${colorName}.`;
-
-            if (playerColor === 'black') {
-                triggerRobotTurn();
-            }
-        }
-
-        function formatMoveDescription(moveObj, actor) {
-            const pieceName = pieceNamesFr[moveObj.piece] || 'Pièce';
-            const fromSq = moveObj.from;
-            const toSq = moveObj.to;
-
-            if (moveObj.captured) {
-                const capturedName = pieceNamesFr[moveObj.captured] || 'pion';
-                return `${actor} : ${pieceName} ${fromSq} en ${toSq} (capture ${capturedName})`;
+            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} \vert{} Vous jouez les${colorName}`;
+            document.getElementById('logBox').innerHTML = `[biche_chess] Partie lancée ! Difficulté : ${diffNames[currentDifficulty]}. Vous jouez les ${colorName}.`;  if (playerColor === 'black') { triggerRobotTurn(); } }  function formatMoveDescription(moveObj, actor) { const pieceName = pieceNamesFr[moveObj.piece] \vert{}\vert{} 'Pièce'; const fromSq = moveObj.from; const toSq = moveObj.to;  if (moveObj.captured) { const capturedName = pieceNamesFr[moveObj.captured] \vert{}\vert{} 'pion'; return `${actor} : ${pieceName}${fromSq} en ${toSq} (capture${capturedName})`;
             } else {
-                return `${actor} : ${pieceName} ${fromSq} en ${toSq}`;
+                return `${actor} :${pieceName} ${fromSq} en${toSq}`;
             }
         }
 
         function submitMove() {
             const input = document.getElementById('moveInput');
-            const moveStr = input.value.trim();
+            // Conversion en minuscules pour accepter les majuscules (ex: E2E4 -> e2e4)
+            const moveStr = input.value.trim().toLowerCase();
             if (!moveStr || !game) return;
 
             try {
@@ -362,12 +340,7 @@
                 let moveObj = tempGameForHuman.move(moveStr, { sloppy: true });
                 
                 if (moveObj === null) {
-                    log(`❌ Coup illégal ou invalide : "${moveStr}"`);
-                    return;
-                }
-
-                game.move(moveStr, { sloppy: true });
-                log(`👤 <b>${formatMoveDescription(moveObj, "Vous")}</b>`);
+                    log(`❌ Coup illégal ou invalide : "${input.value}"`); return; }  game.move(moveStr, { sloppy: true }); log(`👤 <b>${formatMoveDescription(moveObj, "Vous")}</b>`);
                 input.value = '';
 
                 if (game.game_over()) {
@@ -383,23 +356,7 @@
         }
 
         function triggerRobotTurn() {
-            log(`<i>biche_chess réfléchit (${diffNames[currentDifficulty]})...</i>`);
-            setTimeout(() => {
-                if (!game) return;
-                const possibleMoves = game.moves({ verbose: true });
-                if (possibleMoves.length > 0) {
-                    let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                    game.move(chosenMoveObj);
-
-                    const robotDesc = formatMoveDescription(chosenMoveObj, "🤖 biche_chess");
-                    log(`<b>${robotDesc}</b>`);
+            log(`<i>biche_chess réfléchit (${diffNames[currentDifficulty]})...</i>`); setTimeout(() => { if (!game) return; const possibleMoves = game.moves({ verbose: true }); if (possibleMoves.length > 0) { let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)]; game.move(chosenMoveObj);  const robotDesc = formatMoveDescription(chosenMoveObj, "🤖 biche_chess"); log(`<b>${robotDesc}</b>`);
 
                     if (game.game_over()) {
-                        log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
-                    }
-                }
-            }, 600);
-        }
-    </script>
-</body>
-</html>
+                        log(`🏁 Partie terminée ! Résultat : ${game.in
