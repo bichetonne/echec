@@ -214,25 +214,25 @@
             <div>
                 <div class="section-title">1. Choisissez la difficulté du robot</div>
                 <div class="options-group" id="difficultySelector">
-                    <button class="btn-option active" onclick="selectDifficulty('level_0_200', this)">0 à 200 Elo</button>
-                    <button class="btn-option" onclick="selectDifficulty('level_400_600', this)">400 à 600 Elo</button>
-                    <button class="btn-option" onclick="selectDifficulty('level_600_800', this)">600 à 800 Elo</button>
-                    <button class="btn-option" onclick="selectDifficulty('level_800_1000', this)">800 à 1000 Elo</button>
-                    <button class="btn-option" onclick="selectDifficulty('level_1000_1200', this)">1000 à 1200 Elo</button>
-                    <button class="btn-option" onclick="selectDifficulty('level_1200_1400', this)">1200 à 1400 Elo</button>
-                    <button class="btn-option" onclick="selectDifficulty('max_level', this)" style="grid-column: span 2;">Niveau Max</button>
+                    <button class="btn-option active" data-diff="level_0_200">0 à 200 Elo</button>
+                    <button class="btn-option" data-diff="level_400_600">400 à 600 Elo</button>
+                    <button class="btn-option" data-diff="level_600_800">600 à 800 Elo</button>
+                    <button class="btn-option" data-diff="level_800_1000">800 à 1000 Elo</button>
+                    <button class="btn-option" data-diff="level_1000_1200">1000 à 1200 Elo</button>
+                    <button class="btn-option" data-diff="level_1200_1400">1200 à 1400 Elo</button>
+                    <button class="btn-option" data-diff="max_level" style="grid-column: span 2;">Niveau Max</button>
                 </div>
             </div>
 
             <div>
                 <div class="section-title">2. Choisissez votre couleur</div>
                 <div class="options-group colors" id="colorSelector">
-                    <button class="btn-option active" style="flex:1;" onclick="selectColor('white', this)">Blancs (Vous commencez)</button>
-                    <button class="btn-option" style="flex:1;" onclick="selectColor('black', this)">Noirs (Le robot commence)</button>
+                    <button class="btn-option active" style="flex:1;" data-color="white">Blancs (Vous commencez)</button>
+                    <button class="btn-option" style="flex:1;" data-color="black">Noirs (Le robot commence)</button>
                 </div>
             </div>
 
-            <button class="btn-start" onclick="startNewGame()">Lancer la partie</button>
+            <button class="btn-start" id="startBtn">Lancer la partie</button>
         </div>
 
         <!-- ÉCRAN DE JEU -->
@@ -240,8 +240,8 @@
             <div>
                 <div class="section-title">Entrer votre coup</div>
                 <div class="input-group">
-                    <input type="text" id="moveInput" placeholder="ex: e2e4" onkeypress="checkEnter(event)">
-                    <button class="btn-option btn-send" style="flex: 0; padding: 12px 18px;" onclick="submitMove()">Envoyer</button>
+                    <input type="text" id="moveInput" placeholder="ex: e2e4">
+                    <button class="btn-option btn-send" id="sendBtn" style="flex: 0; padding: 12px 18px;">Envoyer</button>
                 </div>
             </div>
 
@@ -254,7 +254,7 @@
         </div>
     </div>
 
-    <!-- Utilisation d'un CDN stable pour chess.js -->
+    <!-- Chargement de chess.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
     <script>
         let game = null;
@@ -275,26 +275,47 @@
             'max_level': 'Niveau Max'
         };
 
-        // Vérification du chargement de Chess.js au démarrage
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vérification de chess.js
             if (typeof Chess === 'undefined') {
-                document.getElementById('logBox'].innerHTML = "❌ Erreur : Impossible de charger la bibliothèque chess.js (vérifiez votre connexion internet).";
-            } else {
-                game = new Chess();
+                document.getElementById('logBox').innerHTML = "❌ Erreur : La bibliothèque chess.js ne s'est pas chargée (vérifiez votre connexion internet).";
+                return;
             }
-        };
+            game = new Chess();
 
-        function selectDifficulty(mode, btn) {
-            document.querySelectorAll('#difficultySelector .btn-option').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentDifficulty = mode;
-        }
+            // Gestion des boutons de difficulté
+            const diffButtons = document.querySelectorAll('#difficultySelector .btn-option');
+            diffButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    diffButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDifficulty = this.getAttribute('data-diff');
+                });
+            });
 
-        function selectColor(color, btn) {
-            document.querySelectorAll('#colorSelector .btn-option').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            playerColor = color;
-        }
+            // Gestion des boutons de couleur
+            const colorButtons = document.querySelectorAll('#colorSelector .btn-option');
+            colorButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    colorButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    playerColor = this.getAttribute('data-color');
+                });
+            });
+
+            // Bouton de lancement
+            document.getElementById('startBtn').addEventListener('click', startNewGame);
+
+            // Bouton d'envoi de coup
+            document.getElementById('sendBtn').addEventListener('click', submitMove);
+
+            // Touche Entrée sur le champ de texte
+            document.getElementById('moveInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitMove();
+                }
+            });
+        });
 
         function log(message) {
             const logBox = document.getElementById('logBox');
@@ -302,11 +323,8 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-    function startNewGame() {
-            if (!game) {
-                alert("La bibliothèque d'échecs n'est pas encore prête.");
-                return;
-            }
+        function startNewGame() {
+            if (!game) return;
             game = new Chess();
             document.getElementById('setupScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
@@ -318,12 +336,6 @@
 
             if (playerColor === 'black') {
                 triggerRobotTurn();
-            }
-        }
-
-        function checkEnter(event) {
-            if (event.key === 'Enter') {
-                submitMove();
             }
         }
 
