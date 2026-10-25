@@ -15,8 +15,8 @@
             --text-muted: #a39580;
             --input-bg: #120e0a;
             
-            --log-panel-bg: rgba(35, 28, 21, 0.7);
-            --log-border: rgba(74, 56, 38, 0.5);
+            --log-panel-bg: rgba(35, 28, 21, 0.85);
+            --log-border: rgba(74, 56, 38, 0.7);
             --log-text: #d1c7b7;
             --log-highlight: rgba(212, 175, 55, 0.1);
         }
@@ -203,7 +203,7 @@
             display: grid;
             grid-template-columns: 50px 1fr 1fr;
             padding: 8px 10px;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.4);
             border-bottom: 1px solid var(--log-border);
             font-weight: bold;
             color: var(--accent-color);
@@ -224,7 +224,7 @@
             grid-template-columns: 50px 1fr 1fr;
             padding: 6px 10px;
             border-bottom: 1px solid rgba(74, 56, 38, 0.2);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             align-items: center;
         }
 
@@ -238,31 +238,20 @@
             font-weight: bold;
         }
 
-        .chess-icon {
-            width: 16px;
-            height: 16px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            display: inline-block;
+        /* Style des symboles de pièces */
+        .chess-symbol {
+            font-size: 1.2rem;
+            margin-right: 6px;
             vertical-align: middle;
-            margin-right: 4px;
         }
-
-        /* Icônes de pièces (Blanches / Dorées) */
-        .icon-p-w { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M22.5 9c-3.513 0-6.375 2.862-6.375 6.375 0 1.587.593 3.05 1.575 4.156L17.718 30H27.28l1.013-10.469c.982-1.105 1.575-2.569 1.575-4.156C28.875 11.862 26.013 9 22.5 9z" fill="%23e5c158"/></svg>'); }
-        .icon-n-w { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M22.5 11.25l11.25 6.75v15.75l-4.5 2.25v-9l-6.75-2.25-6.75 2.25v9l-4.5-2.25V18l11.25-6.75z" fill="%23e5c158"/></svg>'); }
-        .icon-b-w { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M9 36c3.375-3.375 5.625-5.625 5.625-5.625S21.375 27 27 32.625l-3.375 4.5h9V31.5z" fill="%23e5c158"/></svg>'); }
-        .icon-r-w { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M13.5 36h18v6H13.5zM9 9h27v9H9zm0 18h27v9H9z" fill="%23e5c158"/></svg>'); }
-        .icon-q-w { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M11.25 30l4.5-11.25L22.5 30l6.75-11.25 4.5 11.25M9 36h27" fill="%23e5c158"/></svg>'); }
-        .icon-k-w { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M22.5 6.75v24.75m-12.375-12.375h24.75" fill="none" stroke="%23e5c158" stroke-width="2"/></svg>'); }
-
-        /* Icônes de pièces (Noires / Bronze) */
-        .icon-p-b { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M22.5 9c-3.513 0-6.375 2.862-6.375 6.375 0 1.587.593 3.05 1.575 4.156L17.718 30H27.28l1.013-10.469c.982-1.105 1.575-2.569 1.575-4.156C28.875 11.862 26.013 9 22.5 9z" fill="%23c59b27"/></svg>'); }
-        .icon-n-b { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M22.5 11.25l11.25 6.75v15.75l-4.5 2.25v-9l-6.75-2.25-6.75 2.25v9l-4.5-2.25V18l11.25-6.75z" fill="%23c59b27"/></svg>'); }
-        .icon-b-b { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M9 36c3.375-3.375 5.625-5.625 5.625-5.625S21.375 27 27 32.625l-3.375 4.5h9V31.5z" fill="%23c59b27"/></svg>'); }
-        .icon-r-b { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M13.5 36h18v6H13.5zM9 9h27v9H9zm0 18h27v9H9z" fill="%23c59b27"/></svg>'); }
-        .icon-q-b { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M11.25 30l4.5-11.25L22.5 30l6.75-11.25 4.5 11.25M9 36h27" fill="%23c59b27"/></svg>'); }
-        .icon-k-b { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45"><path d="M22.5 6.75v24.75m-12.375-12.375h24.75" fill="none" stroke="%23c59b27" stroke-width="2"/></svg>'); }
+        .piece-white {
+            color: #e5c158; /* Doré pour vous */
+            text-shadow: 0 0 2px rgba(0,0,0,0.8);
+        }
+        .piece-black {
+            color: #c59b27; /* Bronze pour le robot */
+            text-shadow: 0 0 2px rgba(0,0,0,0.8);
+        }
 
         .hidden { display: none !important; }
     </style>
@@ -272,3 +261,221 @@
     <div class="main-container">
         <header>
             <h1>♟️ biche_chess ♔</h1>
+            <p id="headerSubtitle">Moniteur Tactique</p>
+        </header>
+
+        <!-- ÉCRAN DE CONFIGURATION -->
+        <div id="setupScreen" style="display: flex; flex-direction: column; gap: 18px;">
+            <div>
+                <div class="section-title">1. Choisissez la difficulté du robot</div>
+                <div class="options-group" id="difficultySelector">
+                    <button class="btn-option active" data-diff="easy">Facile</button>
+                    <button class="btn-option" data-diff="intermediate">Intermédiaire</button>
+                    <button class="btn-option" data-diff="hard">Difficile</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">2. Choisissez votre couleur</div>
+                <div class="options-group colors" id="colorSelector">
+                    <button class="btn-option active" style="flex:1;" data-color="white">Blancs (Vous commencez)</button>
+                    <button class="btn-option" style="flex:1;" data-color="black">Noirs (Le robot commence)</button>
+                </div>
+            </div>
+
+            <button class="btn-start" id="startBtn">Lancer la partie</button>
+        </div>
+
+        <!-- ÉCRAN DE JEU -->
+        <div id="gameScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
+            <div>
+                <div class="section-title">Entrer votre coup</div>
+                <div class="input-group">
+                    <input type="text" id="moveInput" placeholder="ex: e2e4 ou E2E4">
+                    <button class="btn-option btn-send" id="sendBtn" style="flex: 0; padding: 12px 18px;">Envoyer</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Journal Tactique</div>
+                <div class="log-box" id="logBox">
+                    <div class="log-header">
+                        <div>Tour</div>
+                        <div>Vous</div>
+                        <div>biche_chess</div>
+                    </div>
+                    <div class="log-entries" id="logEntries"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
+    <script>
+        let game = null;
+        let currentDifficulty = 'easy';
+        let playerColor = 'white';
+
+        const pieceNamesFr = {
+            'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi'
+        };
+
+        // Correspondance des symboles Unicode pour les échecs
+        const whiteSymbols = { 'p': '♙', 'n': '♘', 'b': '♗', 'r': '♖', 'q': '♕', 'k': '♔' };
+        const blackSymbols = { 'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
+
+        const diffNames = {
+            'easy': 'Facile',
+            'intermediate': 'Intermédiaire',
+            'hard': 'Difficile'
+        };
+
+        function initApp() {
+            const diffButtons = document.querySelectorAll('#difficultySelector .btn-option');
+            diffButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    diffButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentDifficulty = this.getAttribute('data-diff');
+                });
+            });
+
+            const colorButtons = document.querySelectorAll('#colorSelector .btn-option');
+            colorButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    colorButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    playerColor = this.getAttribute('data-color');
+                });
+            });
+
+            const startBtn = document.getElementById('startBtn');
+            if (startBtn) startBtn.addEventListener('click', startNewGame);
+
+            const sendBtn = document.getElementById('sendBtn');
+            if (sendBtn) sendBtn.addEventListener('click', submitMove);
+
+            const moveInput = document.getElementById('moveInput');
+            if (moveInput) {
+                moveInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') submitMove();
+                });
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
+
+        function startNewGame() {
+            if (typeof Chess === 'undefined') {
+                alert("Erreur : La bibliothèque chess.js ne s'est pas chargée.");
+                return;
+            }
+            
+            game = new Chess();
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
+            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;
+            document.getElementById('logEntries').innerHTML = '';
+
+            if (playerColor === 'black') {
+                triggerRobotTurn();
+            }
+        }
+
+        function logMoveToTacticalView(moveObj) {
+            const logEntries = document.getElementById('logEntries');
+            const history = game.history({ verbose: true });
+            const turnNum = Math.ceil(history.length / 2);
+            
+            let row = document.getElementById(`turn-${turnNum}`);
+            if (!row) {
+                row = document.createElement('div');
+                row.classList.add('log-entry');
+                row.id = `turn-${turnNum}`;
+                row.innerHTML = `
+                    <div class="log-move-num">${turnNum}.</div>
+                    <div id="white-move-${turnNum}">-</div>
+                    <div id="black-move-${turnNum}">-</div>
+                `;
+                logEntries.appendChild(row);
+            }
+
+            const pieceType = moveObj.piece;
+            const isWhite = moveObj.color === 'w';
+            const symbol = isWhite ? whiteSymbols[pieceType] : blackSymbols[pieceType];
+            const colorClass = isWhite ? 'piece-white' : 'piece-black';
+            const pieceName = pieceNamesFr[pieceType] || 'Pièce';
+            
+            let actionText = `${pieceName} ${moveObj.from} en ${moveObj.to}`;
+            if (moveObj.captured) {
+                const capturedName = pieceNamesFr[moveObj.captured] || 'pion';
+                actionText += ` (cap. ${capturedName})`;
+            }
+
+            const content = `<span class="chess-symbol ${colorClass}">${symbol}</span>${actionText}`;
+
+            if (isWhite) {
+                document.getElementById(`white-move-${turnNum}`).innerHTML = content;
+            } else {
+                document.getElementById(`black-move-${turnNum}`).innerHTML = content;
+            }
+            
+            const logBox = document.getElementById('logBox');
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function submitMove() {
+            const input = document.getElementById('moveInput');
+            if (!input) return;
+            const moveStr = input.value.trim().toLowerCase();
+            if (!moveStr || !game) return;
+
+            try {
+                let tempGameForHuman = new Chess(game.fen());
+                let moveObj = tempGameForHuman.move(moveStr, { sloppy: true });
+                
+                if (moveObj === null) {
+                    alert(`Coup illégal ou invalide : "${input.value}"`);
+                    return;
+                }
+
+                game.move(moveStr, { sloppy: true });
+                logMoveToTacticalView(moveObj);
+                input.value = '';
+
+                if (game.game_over()) {
+                    alert(`Partie terminée ! ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
+                    return;
+                }
+
+                triggerRobotTurn();
+
+            } catch (e) {
+                alert(`Erreur de format de coup.`);
+            }
+        }
+
+        function triggerRobotTurn() {
+            setTimeout(() => {
+                if (!game) return;
+                const possibleMoves = game.moves({ verbose: true });
+                if (possibleMoves.length > 0) {
+                    let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    game.move(chosenMoveObj);
+                    logMoveToTacticalView(chosenMoveObj);
+
+                    if (game.game_over()) {
+                        alert(`Partie terminée ! ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
+                    }
+                }
+            }, 600);
+        }
+    </script>
+</body>
+</html>
