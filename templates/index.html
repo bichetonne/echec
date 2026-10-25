@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>biche_chess - Connexion</title>
+    <title>biche_chess</title>
     <style>
         :root {
             --bg-color: #16120e;
@@ -57,22 +57,44 @@
         }
 
         header { 
-            text-align: center; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 2px solid var(--panel-border);
             padding-bottom: 15px;
         }
 
-        header h1 {
+        .header-left h1 {
             color: var(--accent-color);
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
+            font-size: 1.6rem;
+            margin-bottom: 3px;
             text-transform: lowercase;
         }
 
-        header p {
+        .header-left p {
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+        }
+
+        .header-right {
+            text-align: right;
+            display: none;
+        }
+
+        .header-right.active {
+            display: block;
+        }
+
+        .user-tag {
+            font-weight: bold;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .elo-tag {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            font-weight: bold;
         }
 
         .section-title {
@@ -118,7 +140,6 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .btn-start:hover, .btn-auth:hover {
@@ -212,9 +233,8 @@
             background-color: var(--log-panel-bg);
             border: 1px solid var(--log-border);
             border-radius: 8px;
-            height: 300px;
+            height: 250px;
             overflow-y: auto;
-            padding: 0;
             font-family: 'Courier New', Courier, monospace;
             color: var(--log-text);
             display: flex;
@@ -256,8 +276,14 @@
 
     <div class="main-container">
         <header>
-            <h1>♟️ biche_chess ♔</h1>
-            <p id="headerSubtitle">Portail d'authentification</p>
+            <div class="header-left">
+                <h1>♟️ biche_chess</h1>
+                <p id="headerSubtitle">Portail d'authentification</p>
+            </div>
+            <div class="header-right" id="headerRightProfile">
+                <div class="user-tag" id="displayUsername">Utilisateur</div>
+                <div class="elo-tag">Elo : <span id="displayElo">1200</span></div>
+            </div>
         </header>
 
         <!-- ÉCRAN DE CONNEXION / INSCRIPTION -->
@@ -275,7 +301,7 @@
         <!-- ÉCRAN DE CONFIGURATION -->
         <div id="setupScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
-                <div class="section-title">1. Niveau de difficulté (Style Chess.com)</div>
+                <div class="section-title">1. Niveau de difficulté</div>
                 <div class="slider-box">
                     <input type="range" id="skillSlider" min="1" max="20" value="5" class="skill-slider">
                     <div class="slider-info">
@@ -302,7 +328,7 @@
             <div>
                 <div class="section-title">Entrer votre coup</div>
                 <div class="input-group">
-                    <input type="text" id="moveInput" placeholder="ex: e2e4 ou E2E4">
+                    <input type="text" id="moveInput" placeholder="ex: e2e4">
                     <button class="btn-option btn-send" id="sendBtn" style="flex: 0; padding: 12px 18px;">Envoyer</button>
                 </div>
             </div>
@@ -328,6 +354,7 @@
         let playerColor = 'white';
         let isLoginMode = true;
         let currentUser = null;
+        let currentElo = 1200;
 
         const chessComEloMap = {
             1: "250 Elo", 2: "400 Elo", 3: "600 Elo", 4: "800 Elo", 5: "1000 Elo",
@@ -372,9 +399,16 @@
 
                     if (data.success) {
                         currentUser = data.username || username;
+                        currentElo = data.elo !== undefined ? data.elo : 1200;
+
+                        // Mettre à jour l'affichage en haut à droite
+                        document.getElementById('displayUsername').textContent = currentUser;
+                        document.getElementById('displayElo').textContent = currentElo;
+                        document.getElementById('headerRightProfile').classList.add('active');
+
                         document.getElementById('authScreen').classList.add('hidden');
                         document.getElementById('setupScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Bienvenue, ${currentUser} !`;
+                        document.getElementById('headerSubtitle').textContent = `Configuration de la partie`;
                     } else {
                         msgDiv.textContent = data.message;
                     }
@@ -418,13 +452,34 @@
             document.getElementById('setupScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
             
-            const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
-            document.getElementById('headerSubtitle').textContent = `Joueur : ${currentUser} | Niv. ${currentSkillLevel} (${chessComEloMap[currentSkillLevel]})`;
+            document.getElementById('headerSubtitle').textContent = `Niv. ${currentSkillLevel} (${chessComEloMap[currentSkillLevel]})`;
             document.getElementById('logEntries').innerHTML = '';
 
             if (playerColor === 'black') {
                 triggerRobotTurn();
             }
+        }
+
+        async function updateDatabaseElo(newElo) {
+            try {
+                await fetch('/api/update_elo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser, elo: newElo })
+                });
+            } catch (err) {
+                console.error("Erreur mise à jour Elo:", err);
+            }
+        }
+
+        function handleGameOver() {
+            // Exemple simple : si la partie s'arrête, on simule un gain ou une perte d'Elo
+            // (Ici selon si c'est mat ou autre, ou on peut l'adapter selon le résultat réel)
+            let eloChange = 15; // Gagné
+            // Si vous voulez gérer la défaite, vous pouvez ajuster selon le cas
+            currentElo += eloChange;
+            document.getElementById('displayElo').textContent = currentElo;
+            updateDatabaseElo(currentElo);
         }
 
         function logMoveToTacticalView(moveObj) {
@@ -488,7 +543,8 @@
                 input.value = '';
 
                 if (game.game_over()) {
-                    alert(`Partie terminée ! ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
+                    alert(`Partie terminée !`);
+                    handleGameOver();
                     return;
                 }
 
@@ -509,7 +565,8 @@
                     logMoveToTacticalView(chosenMoveObj);
 
                     if (game.game_over()) {
-                        alert(`Partie terminée ! ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
+                        alert(`Partie terminée !`);
+                        handleGameOver();
                     }
                 }
             }, 600);
