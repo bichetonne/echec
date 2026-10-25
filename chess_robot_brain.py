@@ -5,7 +5,7 @@ import time
 STOCKFISH_PATH = "stockfish" 
 
 class ChessRobotAI:
-    def __init__(self, difficulty="easy", player_color=chess.WHITE):
+    def __init__(self, difficulty="sub_200", player_color=chess.WHITE):
         self.board = chess.Board()
         self.difficulty = difficulty
         self.player_color = player_color
@@ -19,7 +19,17 @@ class ChessRobotAI:
         self.configure_difficulty()
 
     def configure_difficulty(self):
-        if self.difficulty == "easy":
+        if self.difficulty == "sub_200":
+            # Niveau ~0-200 Elo (Skill Level 0, le plus faible possible)
+            self.engine.configure({"Skill Level": 0})
+            self.limit = chess.engine.Limit(time=0.1)
+            print("🤖 Mode Débutant activé (0-200 Elo).")
+        elif self.difficulty == "sub_600":
+            # Niveau ~400-600 Elo (Skill Level 1)
+            self.engine.configure({"Skill Level": 1})
+            self.limit = chess.engine.Limit(time=0.15)
+            print("🤖 Mode Écolier activé (400-600 Elo).")
+        elif self.difficulty == "easy":
             # Niveau ~600-800 Elo
             self.engine.configure({"Skill Level": 2})
             self.limit = chess.engine.Limit(time=0.2)
@@ -100,25 +110,31 @@ class ChessRobotAI:
 if __name__ == "__main__":
     print("=== CONFIGURATION DU ROBOT D'ÉCHECS ===")
     
-    # 1. Choix de la difficulté avec le Mode Facile +
     print("Choisissez le niveau de difficulté :")
-    print("1. Facile (~600-800 Elo)")
-    print("2. Facile + (~1000-1200 Elo)")
-    print("3. Intermédiaire (~1400-1600 Elo)")
-    print("4. Difficile (Niveau Max)")
+    print("1. Débutant (0-200 Elo)")
+    print("2. Écolier (400-600 Elo)")
+    print("3. Facile (~600-800 Elo)")
+    print("4. Facile + (~1000-1200 Elo)")
+    print("5. Intermédiaire (~1400-1600 Elo)")
+    print("6. Difficile (Niveau Max)")
     
-    diff_choice = input("Votre choix (1, 2, 3 ou 4) : ").strip()
+    diff_choice = input("Votre choix (1 à 6) : ").strip()
     
-    if diff_choice == "2":
-        diff_mode = "easy_plus"
+    if diff_choice == "1":
+        diff_mode = "sub_200"
+    elif diff_choice == "2":
+        diff_mode = "sub_600"
     elif diff_choice == "3":
-        diff_mode = "intermediate"
+        diff_mode = "easy"
     elif diff_choice == "4":
+        diff_mode = "easy_plus"
+    elif diff_choice == "5":
+        diff_mode = "intermediate"
+    elif diff_choice == "6":
         diff_mode = "hard"
     else:
-        diff_mode = "easy"
+        diff_mode = "sub_200"
     
-    # 2. Choix de la couleur
     print("\nChoisissez votre couleur :")
     print("1. Blancs (Vous commencez)")
     print("2. Noirs (Le robot commence)")
