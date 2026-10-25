@@ -5,7 +5,7 @@ import time
 STOCKFISH_PATH = "stockfish" 
 
 class ChessRobotAI:
-    def __init__(self, difficulty="level_0_200", player_color=chess.WHITE):
+    def __init__(self, difficulty="easy", player_color=chess.WHITE):
         self.board = chess.Board()
         self.difficulty = difficulty
         self.player_color = player_color
@@ -19,38 +19,26 @@ class ChessRobotAI:
         self.configure_difficulty()
 
     def configure_difficulty(self):
-        if self.difficulty == "level_0_200":
-            self.engine.configure({"Skill Level": 0})
-            self.limit = chess.engine.Limit(time=0.1)
-            print("🤖 [biche_chess] Niveau 0 à 200 Elo activé.")
-        elif self.difficulty == "level_400_600":
-            self.engine.configure({"Skill Level": 1})
-            self.limit = chess.engine.Limit(time=0.15)
-            print("🤖 [biche_chess] Niveau 400 à 600 Elo activé.")
-        elif self.difficulty == "level_600_800":
-            self.engine.configure({"Skill Level": 2})
+        if self.difficulty == "easy":
+            # Mode Facile (Niveau modéré d'erreurs)
+            self.engine.configure({"Skill Level": 3})
             self.limit = chess.engine.Limit(time=0.2)
-            print("🤖 [biche_chess] Niveau 600 à 800 Elo activé.")
-        elif self.difficulty == "level_800_1000":
-            self.engine.configure({"Skill Level": 4})
-            self.limit = chess.engine.Limit(time=0.25)
-            print("🤖 [biche_chess] Niveau 800 à 1000 Elo activé.")
-        elif self.difficulty == "level_1000_1200":
-            self.engine.configure({"Skill Level": 7})
-            self.limit = chess.engine.Limit(time=0.3)
-            print("🤖 [biche_chess] Niveau 1000 à 1200 Elo activé.")
-        elif self.difficulty == "level_1200_1400":
+            print("🤖 [biche_chess] Mode Facile activé.")
+        elif self.difficulty == "intermediate":
+            # Mode Intermédiaire
             self.engine.configure({"Skill Level": 10})
-            self.limit = chess.engine.Limit(time=0.4)
-            print("🤖 [biche_chess] Niveau 1200 à 1400 Elo activé.")
-        elif self.difficulty == "max_level":
+            self.limit = chess.engine.Limit(time=0.5)
+            print("🤖 [biche_chess] Mode Intermédiaire activé.")
+        elif self.difficulty == "hard":
+            # Mode Difficile (Niveau Max)
             self.engine.configure({"Skill Level": 20})
             self.limit = chess.engine.Limit(time=2.0)
-            print("🤖 [biche_chess] Niveau Max activé.")
+            print("🤖 [biche_chess] Mode Difficile activé.")
         else:
             raise ValueError("Mode inconnu.")
 
     def format_move_description(self, move, actor_prefix):
+        """Formate le texte sous la forme : [Acteur] : [Pièce] [départ] en [arrivée]"""
         piece = self.board.piece_at(move.from_square)
         if not piece:
             return str(move)
@@ -112,26 +100,18 @@ if __name__ == "__main__":
     print("=== ♟️ biche_chess - CONFIGURATION DU CERVEAU PYTHON ♔ ===")
     
     print("Choisissez le niveau de difficulté :")
-    print("1. 0 à 200 Elo")
-    print("2. 400 à 600 Elo")
-    print("3. 600 à 800 Elo")
-    print("4. 800 à 1000 Elo")
-    print("5. 1000 à 1200 Elo")
-    print("6. 1200 à 1400 Elo")
-    print("7. Niveau Max")
+    print("1. Facile")
+    print("2. Intermédiaire")
+    print("3. Difficile")
     
-    diff_choice = input("Votre choix (1 à 7) : ").strip()
+    diff_choice = input("Votre choix (1 à 3) : ").strip()
     
     mapping = {
-        "1": "level_0_200",
-        "2": "level_400_600",
-        "3": "level_600_800",
-        "4": "level_800_1000",
-        "5": "level_1000_1200",
-        "6": "level_1200_1400",
-        "7": "max_level"
+        "1": "easy",
+        "2": "intermediate",
+        "3": "hard"
     }
-    diff_mode = mapping.get(diff_choice, "level_0_200")
+    diff_mode = mapping.get(diff_choice, "easy")
     
     print("\nChoisissez votre couleur :")
     print("1. Blancs (Vous commencez)")
