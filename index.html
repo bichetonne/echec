@@ -213,7 +213,6 @@
             }
         }
 
-        // Formate l'affichage : "Pièce départ en arrivée" (ex: Pion e2 en e4)
         function formatMoveDescription(moveObj, actor) {
             const pieceName = pieceNamesFr[moveObj.piece] || 'Pièce';
             const fromSq = moveObj.from;
@@ -233,7 +232,6 @@
             if (!moveStr) return;
 
             try {
-                // On récupère l'objet du coup avant de le valider définitivement
                 let tempGameForHuman = new Chess(game.fen());
                 let moveObj = tempGameForHuman.move(moveStr, { sloppy: true });
                 
@@ -242,7 +240,6 @@
                     return;
                 }
 
-                // Joue le coup sur la vraie partie
                 game.move(moveStr, { sloppy: true });
                 log(`👤 <b>${formatMoveDescription(moveObj, "Vous")}</b>`);
                 input.value = '';
@@ -254,7 +251,8 @@
 
                 log(`<i>Le robot réfléchit (${currentDifficulty})...</i>`);
                 setTimeout(() => {
-                    const possibleMoves = game.verbose_moves();
+                    // CORRECTION ICI : Utilisation de game.moves({ verbose: true }) à la place de verbose_moves()
+                    const possibleMoves = game.moves({ verbose: true });
                     if (possibleMoves.length > 0) {
                         let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
                         game.move(chosenMoveObj);
