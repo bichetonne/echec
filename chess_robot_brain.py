@@ -5,9 +5,9 @@ import time
 STOCKFISH_PATH = "stockfish" 
 
 class ChessRobotAI:
-    def __init__(self, difficulty="easy", player_color=chess.WHITE):
+    def __init__(self, skill_level=5, player_color=chess.WHITE):
         self.board = chess.Board()
-        self.difficulty = difficulty
+        self.skill_level = max(1, min(20, skill_level)) # Sécurité : entre 1 et 20
         self.player_color = player_color
         
         try:
@@ -19,26 +19,14 @@ class ChessRobotAI:
         self.configure_difficulty()
 
     def configure_difficulty(self):
-        if self.difficulty == "easy":
-            # Mode Facile (Niveau modéré d'erreurs)
-            self.engine.configure({"Skill Level": 3})
-            self.limit = chess.engine.Limit(time=0.2)
-            print("🤖 [biche_chess] Mode Facile activé.")
-        elif self.difficulty == "intermediate":
-            # Mode Intermédiaire
-            self.engine.configure({"Skill Level": 10})
-            self.limit = chess.engine.Limit(time=0.5)
-            print("🤖 [biche_chess] Mode Intermédiaire activé.")
-        elif self.difficulty == "hard":
-            # Mode Difficile (Niveau Max)
-            self.engine.configure({"Skill Level": 20})
-            self.limit = chess.engine.Limit(time=2.0)
-            print("🤖 [biche_chess] Mode Difficile activé.")
-        else:
-            raise ValueError("Mode inconnu.")
+        # Configuration directe du niveau Stockfish (1 à 20)
+        self.engine.configure({"Skill Level": self.skill_level})
+        # Ajustement dynamique du temps de réflexion en fonction du niveau choisi
+        time_limit = 0.1 + (self.skill_level * 0.1)  # de 0.2s (niveau 1) à 2.1s (niveau 20)
+        self.limit = chess.engine.Limit(time=time_limit)
+        print(f"🤖 [biche_chess] Niveau Stockfish {self.skill_level}/20 activé.")
 
     def format_move_description(self, move, actor_prefix):
-        """Formate le texte sous la forme : [Acteur] : [Pièce] [départ] en [arrivée]"""
         piece = self.board.piece_at(move.from_square)
         if not piece:
             return str(move)
@@ -77,7 +65,6 @@ class ChessRobotAI:
 
     def play_human_turn(self, move_uci):
         try:
-            # Convertit la saisie en minuscules pour accepter les majuscules (ex: E2E4)
             move_uci_cleaned = move_uci.strip().lower()
             move = chess.Move.from_uci(move_uci_cleaned)
             
@@ -99,19 +86,11 @@ class ChessRobotAI:
 if __name__ == "__main__":
     print("=== ♟️ biche_chess - CONFIGURATION DU CERVEAU PYTHON ♔ ===")
     
-    print("Choisissez le niveau de difficulté :")
-    print("1. Facile")
-    print("2. Intermédiaire")
-    print("3. Difficile")
-    
-    diff_choice = input("Votre choix (1 à 3) : ").strip()
-    
-    mapping = {
-        "1": "easy",
-        "2": "intermediate",
-        "3": "hard"
-    }
-    diff_mode = mapping.get(diff_choice, "easy")
+    try:
+        level_input = input("Choisissez le niveau de difficulté (1 à 20) [défaut: 5] : ").strip()
+        skill_level = int(level_input) if level_input else 5
+    except ValueError:
+        skill_level = 5
     
     print("\nChoisissez votre couleur :")
     print("1. Blancs (Vous commencez)")
@@ -119,7 +98,7 @@ if __name__ == "__main__":
     color_choice = input("Votre choix (1 ou 2) : ").strip()
     player_color = chess.BLACK if color_choice == "2" else chess.WHITE
     
-    robot = ChessRobotAI(difficulty=diff_mode, player_color=player_color)
+    robot = ChessRobotAI(skill_level=skill_level, player_color=player_color)
     
     color_str = "Noirs" if player_color == chess.BLACK else "Blancs"
     print(f"\nPartie lancée sous biche_chess ! Vous jouez les {color_str}. Entrez vos coups au format UCI (ex: 'e2e4' ou 'E2E4'). Tapez 'exit' pour quitter.\n")
