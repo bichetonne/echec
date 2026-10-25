@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot d'Échecs - Partie Interactive</title>
+    <title>Robot d'Échecs - Console</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -12,8 +12,6 @@
             --accent-hover: #d4af37;
             --text-color: #e0e0e0;
             --text-muted: #888;
-            --board-light: #f0d9b5;
-            --board-dark: #b58863;
         }
 
         * {
@@ -30,102 +28,60 @@
             flex-direction: column;
             min-height: 100vh;
             align-items: center;
+            justify-content: center;
             padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        header h1 {
-            color: var(--accent-color);
-            font-size: 2.2rem;
-            margin-bottom: 5px;
-        }
-
-        header p {
-            color: var(--text-muted);
-            font-size: 1rem;
         }
 
         .main-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            justify-content: center;
-            max-width: 1000px;
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
             width: 100%;
-        }
-
-        .board-container {
-            background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-
-        .chessboard {
-            display: grid;
-            grid-template-columns: repeat(8, 60px);
-            grid-template-rows: repeat(8, 60px);
-            border: 4px solid #333;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .square {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 38px;
-            user-select: none;
-        }
-
-        .square.light {
-            background-color: var(--board-light);
-            color: #000;
-        }
-
-        .square.dark {
-            background-color: var(--board-dark);
-            color: #000;
-        }
-
-        .control-panel {
-            background: var(--panel-bg);
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            flex: 1;
-            min-width: 320px;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
 
+        header {
+            text-align: center;
+        }
+
+        header h1 {
+            color: var(--accent-color);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
         .section-title {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: var(--accent-color);
             border-bottom: 1px solid #333;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             margin-bottom: 10px;
         }
 
         .mode-selector {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-mode {
             flex: 1;
-            padding: 10px;
+            padding: 10px 5px;
             border: 2px solid #444;
             background: #2a2a2a;
             color: var(--text-color);
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
+            font-size: 0.85rem;
             transition: all 0.3s ease;
         }
 
@@ -174,86 +130,58 @@
             background: #121212;
             border: 1px solid #333;
             border-radius: 8px;
-            height: 160px;
+            height: 250px;
             overflow-y: auto;
-            padding: 10px;
+            padding: 12px;
             font-family: monospace;
             font-size: 0.9rem;
             color: #ccc;
-            line-height: 1.4;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🤖 Chess Robot Interface</h1>
-        <p>Jouez contre votre robot en entrant vos coups (ex: e2e4)</p>
-    </header>
-
     <div class="main-container">
-        <!-- Échiquier visuel -->
-        <div class="board-container">
-            <div class="chessboard" id="chessboard"></div>
+        <header>
+            <h1>🤖 Chess Robot Console</h1>
+            <p>Interface textuelle de pilotage de votre robot</p>
+        </header>
+
+        <!-- Sélection de la difficulté -->
+        <div>
+            <div class="section-title">Difficulté du robot</div>
+            <div class="mode-selector">
+                <button class="btn-mode active" onclick="setMode('easy', this)">Facile</button>
+                <button class="btn-mode" onclick="setMode('intermediate', this)">Intermédiaire</button>
+                <button class="btn-mode" onclick="setMode('hard', this)">Difficile</button>
+            </div>
         </div>
 
-        <!-- Panneau de contrôle -->
-        <div class="control-panel">
-            <div>
-                <div class="section-title">Difficulté du robot</div>
-                <div class="mode-selector">
-                    <button class="btn-mode active" onclick="setMode('intermediate', this)">Intermédiaire</button>
-                    <button class="btn-mode" onclick="setMode('hard', this)">Difficile</button>
-                </div>
+        <!-- Zone de saisie du coup -->
+        <div>
+            <div class="section-title">Entrer votre coup</div>
+            <div class="input-group">
+                <input type="text" id="moveInput" placeholder="ex: e2e4" onkeypress="checkEnter(event)">
+                <button class="btn-action" onclick="submitMove()">Envoyer</button>
             </div>
+        </div>
 
-            <div>
-                <div class="section-title">Jouer votre coup</div>
-                <div class="input-group">
-                    <input type="text" id="moveInput" placeholder="ex: e2e4" onkeypress="checkEnter(event)">
-                    <button class="btn-action" onclick="submitMove()">Envoyer</button>
-                </div>
-            </div>
-
-            <div>
-                <div class="section-title">Journal de la partie</div>
-                <div class="log-box" id="logBox">
-                    [System] Prêt. Entrez votre premier coup (ex: e2e4).
-                </div>
+        <!-- Journal de la partie -->
+        <div>
+            <div class="section-title">Journal de la partie</div>
+            <div class="log-box" id="logBox">
+                [System] Prêt. Mode Facile sélectionné par défaut.<br>
+                [System] Entrez votre premier coup (ex: e2e4).
             </div>
         </div>
     </div>
 
-    <!-- Intégration d'une bibliothèque JavaScript légère pour simuler la logique des échecs (chess.js) -->
+    <!-- Bibliothèque de gestion des échecs (utilisée en arrière-plan) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
         const game = new Chess();
-        const pieces = {
-            'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
-            'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
-        };
-
-        function updateBoard() {
-            const boardElement = document.getElementById('chessboard');
-            boardElement.innerHTML = '';
-            const boardData = game.board();
-
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
-                    const square = document.createElement('div');
-                    const isDark = (row + col) % 2 === 1;
-                    square.className = `square ${isDark ? 'dark' : 'light'}`;
-                    
-                    const piece = boardData[row][col];
-                    if (piece) {
-                        const symbolKey = piece.color === 'w' ? piece.type.toUpperCase() : piece.type;
-                        square.textContent = pieces[symbolKey];
-                    }
-                    
-                    boardElement.appendChild(square);
-                }
-            }
-        }
+        let currentDifficulty = 'easy';
 
         function log(message) {
             const logBox = document.getElementById('logBox');
@@ -264,7 +192,14 @@
         function setMode(mode, btn) {
             document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            log(`[System] Mode basculé sur : ${mode === 'intermediate' ? 'Intermédiaire' : 'Difficile'}`);
+            currentDifficulty = mode;
+            
+            const modeNames = {
+                'easy': 'Facile (Erreurs fréquentes / Niveau débutant)',
+                'intermediate': 'Intermédiaire (Niveau modéré)',
+                'hard': 'Difficile (Pleine puissance)'
+            };
+            log(`[System] Difficulté changée : ${modeNames[mode]}`);
         }
 
         function checkEnter(event) {
@@ -278,9 +213,7 @@
             const moveStr = input.value.trim();
             if (!moveStr) return;
 
-            // Tentative de jouer le coup humain
             try {
-                // On essaie de parser au format UCI (ex: e2e4) ou SAN (ex: e4)
                 let move = game.move(moveStr, { sloppy: true });
                 
                 if (move === null) {
@@ -288,25 +221,31 @@
                     return;
                 }
 
-                log(`👤 Vous avez joué : <b>${move.san}</b> (${moveStr})`);
+                log(`👤 Vous : <b>${move.san}</b> (${moveStr})`);
                 input.value = '';
-                updateBoard();
 
                 if (game.game_over()) {
                     log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
                     return;
                 }
 
-                // Simulation de la réponse du robot (Dans la vraie version, cela appellera Stockfish via Python)
-                log(`🤖 Le robot réfléchit...`);
+                // Simulation de la réponse du robot selon la difficulté
+                log(`🤖 Le robot réfléchit (${currentDifficulty})...`);
                 setTimeout(() => {
                     const possibleMoves = game.moves();
                     if (possibleMoves.length > 0) {
-                        // Choix d'un coup aléatoire pour la simulation front-end (ou simulant le moteur)
-                        const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                        game.move(randomMove);
-                        log(`🤖 Le robot a joué : <b>${randomMove}</b>`);
-                        updateBoard();
+                        let chosenMove;
+                        
+                        // En mode facile, le robot choisit souvent un coup aléatoire ou moins optimisé
+                        if (currentDifficulty === 'easy') {
+                            chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        } else {
+                            // Simulation pour les autres modes (prend le premier pour l'exemple front-end)
+                            chosenMove = possibleMoves[0];
+                        }
+
+                        game.move(chosenMove);
+                        log(`🤖 Robot : <b>${chosenMove}</b>`);
                     }
                 }, 600);
 
@@ -314,9 +253,6 @@
                 log(`❌ Erreur de format de coup.`);
             }
         }
-
-        // Initialisation de l'affichage au chargement
-        window.onload = updateBoard;
     </script>
 </body>
 </html>
