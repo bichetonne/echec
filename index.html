@@ -38,7 +38,7 @@
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.6);
             width: 100%;
-            max-width: 650px;
+            max-width: 680px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -68,12 +68,16 @@
         }
 
         .options-group {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 8px;
         }
 
+        .options-group.colors {
+            display: flex;
+        }
+
         .btn-option {
-            flex: 1;
             padding: 10px 5px;
             border: 2px solid #444;
             background: #2a2a2a;
@@ -83,6 +87,7 @@
             font-weight: bold;
             font-size: 0.85rem;
             transition: all 0.3s ease;
+            text-align: center;
         }
 
         .btn-option.active {
@@ -154,29 +159,30 @@
             <p id="headerSubtitle">Configurez votre partie</p>
         </header>
 
-        <!-- ÉCRAN DE CONFIGURATION (Avant la partie) -->
+        <!-- ÉCRAN DE CONFIGURATION -->
         <div id="setupScreen" style="display: flex; flex-direction: column; gap: 20px;">
             <div>
                 <div class="section-title">1. Choisissez la difficulté du robot</div>
                 <div class="options-group" id="difficultySelector">
-                    <button class="btn-option active" onclick="selectDifficulty('easy', this)">Facile</button>
-                    <button class="btn-option" onclick="selectDifficulty('intermediate', this)">Intermédiaire</button>
-                    <button class="btn-option" onclick="selectDifficulty('hard', this)">Difficile</button>
+                    <button class="btn-option active" onclick="selectDifficulty('easy', this)">Facile (~600-800 Elo)</button>
+                    <button class="btn-option" onclick="selectDifficulty('easy_plus', this)">Facile + (~1000-1200 Elo)</button>
+                    <button class="btn-option" onclick="selectDifficulty('intermediate', this)">Intermédiaire (~1400-1600 Elo)</button>
+                    <button class="btn-option" onclick="selectDifficulty('hard', this)">Difficile (Niveau Max)</button>
                 </div>
             </div>
 
             <div>
                 <div class="section-title">2. Choisissez votre couleur</div>
-                <div class="options-group" id="colorSelector">
-                    <button class="btn-option active" onclick="selectColor('white', this)">Blancs (Vous commencez)</button>
-                    <button class="btn-option" onclick="selectColor('black', this)">Noirs (Le robot commence)</button>
+                <div class="options-group colors" id="colorSelector">
+                    <button class="btn-option active" style="flex:1;" onclick="selectColor('white', this)">Blancs (Vous commencez)</button>
+                    <button class="btn-option" style="flex:1;" onclick="selectColor('black', this)">Noirs (Le robot commence)</button>
                 </div>
             </div>
 
             <button class="btn-start" onclick="startNewGame()">Lancer la partie</button>
         </div>
 
-        <!-- ÉCRAN DE JEU (Caché au départ) -->
+        <!-- ÉCRAN DE JEU -->
         <div id="gameScreen" class="hidden" style="display: flex; flex-direction: column; gap: 20px;">
             <div>
                 <div class="section-title">Entrer votre coup</div>
@@ -199,10 +205,17 @@
     <script>
         let game = new Chess();
         let currentDifficulty = 'easy';
-        let playerColor = 'white'; // 'white' ou 'black'
+        let playerColor = 'white';
 
         const pieceNamesFr = {
             'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi'
+        };
+
+        const diffNames = {
+            'easy': 'Facile (~600-800 Elo)',
+            'easy_plus': 'Facile + (~1000-1200 Elo)',
+            'intermediate': 'Intermédiaire (~1400-1600 Elo)',
+            'hard': 'Difficile (Niveau Max)'
         };
 
         function selectDifficulty(mode, btn) {
@@ -228,14 +241,11 @@
             document.getElementById('setupScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
             
-            const diffNames = { 'easy': 'Facile', 'intermediate': 'Intermédiaire', 'hard': 'Difficile' };
             const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
             
             document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;
-            
             document.getElementById('logBox').innerHTML = `[System] Partie lancée ! Difficulté : ${diffNames[currentDifficulty]}. Vous jouez les ${colorName}.`;
 
-            // Si le joueur a choisi les Noirs, c'est au robot (Blancs) de jouer en premier
             if (playerColor === 'black') {
                 triggerRobotTurn();
             }
@@ -291,7 +301,7 @@
         }
 
         function triggerRobotTurn() {
-            log(`<i>Le robot réfléchit (${currentDifficulty})...</i>`);
+            log(`<i>Le robot réfléchit (${diffNames[currentDifficulty]})...</i>`);
             setTimeout(() => {
                 const possibleMoves = game.moves({ verbose: true });
                 if (possibleMoves.length > 0) {
