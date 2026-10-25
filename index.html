@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robot d'Échecs - Console Responsive</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --accent-color: #c5a059;
+            --accent-hover: #d4af37;
+            --text-color: #e0e0e0;
+            --text-muted: #888;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .main-container {
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            width: 100%;
+            max-width: 680px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        @media (min-width: 768px) {
+            .main-container { padding: 30px; }
+        }
+
+        header { text-align: center; }
+
+        header h1 {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        @media (min-width: 768px) { header h1 { font-size: 1.8rem; } }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (min-width: 768px) { header p { font-size: 0.9rem; } }
+
+        .section-title {
+            font-size: 0.95rem;
+            color: var(--accent-color);
+            border-bottom: 1px solid #333;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+
+        .options-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        @media (min-width: 500px) {
+            .options-group { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .options-group.colors {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 500px) {
+            .options-group.colors { flex-direction: row; }
+        }
+
+        .btn-option {
+            padding: 12px 10px;
+            border: 2px solid #444;
+            background: #2a2a2a;
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            touch-action: manipulation;
+        }
+
+        .btn-option.active {
+            border-color: var(--accent-color);
+            background: rgba(197, 160, 89, 0.15);
+            color: var(--accent-color);
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            touch-action: manipulation;
+        }
+
+        .btn-start:hover { background-color: var(--accent-hover); }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            background: #121212;
+            border: 1px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+        }
+
+        input[type="text"]:focus { border-color: var(--accent-color); }
+
+        .log-box {
+            background: #121212;
+            border: 1px solid #333;
+            border-radius: 8px;
+            height: 250px;
+            overflow-y: auto;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        @media (min-width: 768px) {
+            .log-box {
+                height: 280px;
+                font-size: 0.9rem;
+            }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1>🤖 Chess Robot</h1>
+            <p id="headerSubtitle">Configurez votre partie</p>
+        </header>
+
+        <!-- ÉCRAN DE CONFIGURATION -->
+        <div id="setupScreen" style="display: flex; flex-direction: column; gap: 18px;">
+            <div>
+                <div class="section-title">1. Choisissez la difficulté du robot</div>
+                <div class="options-group" id="difficultySelector">
+                    <button class="btn-option active" onclick="selectDifficulty('sub_200', this)">Débutant (0-200 Elo)</button>
+                    <button class="btn-option" onclick="selectDifficulty('sub_600', this)">Écolier (400-600 Elo)</button>
+                    <button class="btn-option" onclick="selectDifficulty('easy', this)">Facile (~600-800 Elo)</button>
+                    <button class="btn-option" onclick="selectDifficulty('easy_plus', this)">Facile + (~1000-1200 Elo)</button>
+                    <button class="btn-option" onclick="selectDifficulty('intermediate', this)">Intermédiaire (~1400-1600 Elo)</button>
+                    <button class="btn-option" onclick="selectDifficulty('hard', this)">Difficile (Niveau Max)</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">2. Choisissez votre couleur</div>
+                <div class="options-group colors" id="colorSelector">
+                    <button class="btn-option active" style="flex:1;" onclick="selectColor('white', this)">Blancs (Vous commencez)</button>
+                    <button class="btn-option" style="flex:1;" onclick="selectColor('black', this)">Noirs (Le robot commence)</button>
+                </div>
+            </div>
+
+            <button class="btn-start" onclick="startNewGame()">Lancer la partie</button>
+        </div>
+
+        <!-- ÉCRAN DE JEU -->
+        <div id="gameScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
+            <div>
+                <div class="section-title">Entrer votre coup</div>
+                <div class="input-group">
+                    <input type="text" id="moveInput" placeholder="ex: e2e4" onkeypress="checkEnter(event)">
+                    <button class="btn-option" style="flex: 0; padding: 12px 18px; background: var(--accent-color); color: #121212; border: none;" onclick="submitMove()">Envoyer</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Journal de la partie</div>
+                <div class="log-box" id="logBox">
+                    [System] Partie initialisée.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>
+        let game = new Chess();
+        let currentDifficulty = 'sub_200';
+        let playerColor = 'white';
+
+        const pieceNamesFr = {
+            'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi'
+        };
+
+        const diffNames = {
+            'sub_200': 'Débutant (0-200 Elo)',
+            'sub_600': 'Écolier (400-600 Elo)',
+            'easy': 'Facile (~600-800 Elo)',
+            'easy_plus': 'Facile + (~1000-1200 Elo)',
+            'intermediate': 'Intermédiaire (~1400-1600 Elo)',
+            'hard': 'Difficile (Niveau Max)'
+        };
+
+        function selectDifficulty(mode, btn) {
+            document.querySelectorAll('#difficultySelector .btn-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentDifficulty = mode;
+        }
+
+        function selectColor(color, btn) {
+            document.querySelectorAll('#colorSelector .btn-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            playerColor = color;
+        }
+
+        function log(message) {
+            const logBox = document.getElementById('logBox');
+            logBox.innerHTML += `<br>${message}`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function startNewGame() {
+            game = new Chess();
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
+            
+            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;
+            document.getElementById('logBox').innerHTML = `[System] Partie lancée ! Difficulté : ${diffNames[currentDifficulty]}. Vous jouez les ${colorName}.`;
+
+            if (playerColor === 'black') {
+                triggerRobotTurn();
+            }
+        }
+
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                submitMove();
+            }
+        }
+
+        function formatMoveDescription(moveObj, actor) {
+            const pieceName = pieceNamesFr[moveObj.piece] || 'Pièce';
+            const fromSq = moveObj.from;
+            const toSq = moveObj.to;
+
+            if (moveObj.captured) {
+                const capturedName = pieceNamesFr[moveObj.captured] || 'pion';
+                return `${actor} : ${pieceName} ${fromSq} en ${toSq} (capture ${capturedName})`;
+            } else {
+                return `${actor} : ${pieceName} ${fromSq} en ${toSq}`;
+            }
+        }
+
+        function submitMove() {
+            const input = document.getElementById('moveInput');
+            const moveStr = input.value.trim();
+            if (!moveStr) return;
+
+            try {
+                let tempGameForHuman = new Chess(game.fen());
+                let moveObj = tempGameForHuman.move(moveStr, { sloppy: true });
+                
+                if (moveObj === null) {
+                    log(`❌ Coup illégal ou invalide : "${moveStr}"`);
+                    return;
+                }
+
+                game.move(moveStr, { sloppy: true });
+                log(`👤 <b>${formatMoveDescription(moveObj, "Vous")}</b>`);
+                input.value = '';
+
+                if (game.game_over()) {
+                    log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
+                    return;
+                }
+
+                triggerRobotTurn();
+
+            } catch (e) {
+                log(`❌ Erreur de format de coup.`);
+            }
+        }
+
+        function triggerRobotTurn() {
+            log(`<i>Le robot réfléchit (${diffNames[currentDifficulty]})...</i>`);
+            setTimeout(() => {
+                const possibleMoves = game.moves({ verbose: true });
+                if (possibleMoves.length > 0) {
+                    let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    game.move(chosenMoveObj);
+
+                    const robotDesc = formatMoveDescription(chosenMoveObj, "🤖 Robot");
+                    log(`<b>${robotDesc}</b>`);
+
+                    if (game.game_over()) {
+                        log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
+                    }
+                }
+            }, 600);
+        }
+    </script>
+</body>
+</html>
