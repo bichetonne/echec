@@ -272,7 +272,7 @@
             <div class="auth-switch" id="authSwitchText">Pas encore de compte ? <span>S'inscrire</span></div>
         </div>
 
-        <!-- ÉCRAN DE CONFIGURATION (Caché au départ) -->
+        <!-- ÉCRAN DE CONFIGURATION -->
         <div id="setupScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
                 <div class="section-title">1. Niveau de difficulté (Style Chess.com)</div>
@@ -297,7 +297,7 @@
             <button class="btn-start" id="startBtn">Lancer la partie</button>
         </div>
 
-        <!-- ÉCRAN DE JEU (Caché au départ) -->
+        <!-- ÉCRAN DE JEU -->
         <div id="gameScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
                 <div class="section-title">Entrer votre coup</div>
@@ -341,7 +341,6 @@
         const blackSymbols = { 'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Basculer entre Connexion et Inscription
             const authSwitchText = document.getElementById('authSwitchText');
             authSwitchText.addEventListener('click', function() {
                 isLoginMode = !isLoginMode;
@@ -351,7 +350,6 @@
                 document.getElementById('authMsg').textContent = "";
             });
 
-            // Gérer l'authentification (API Flask)
             document.getElementById('authBtn').addEventListener('click', async function() {
                 const username = document.getElementById('usernameInput').value.trim();
                 const password = document.getElementById('passwordInput').value.trim();
@@ -385,7 +383,6 @@
                 }
             });
 
-            // Slider de difficulté
             const slider = document.getElementById('skillSlider');
             const sliderDisplay = document.getElementById('sliderValueDisplay');
             if (slider) {
@@ -395,7 +392,6 @@
                 });
             }
 
-            // Choix de couleur
             const colorButtons = document.querySelectorAll('#colorSelector .btn-option');
             colorButtons.forEach(btn => {
                 btn.addEventListener('click', function() {

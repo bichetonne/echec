@@ -5,7 +5,7 @@ import chess
 import chess.engine
 
 app = Flask(__name__)
-STOCKFISH_PATH = "stockfish"  # Ajustez le chemin si nécessaire
+STOCKFISH_PATH = "stockfish"
 
 # --- BASE DE DONNÉES UTILISATEURS ---
 def init_db():
@@ -23,11 +23,8 @@ def init_db():
 
 init_db()
 
-# Dictionnaire pour stocker les parties en cours par utilisateur
-active_games = {}
-
 @app.route('/')
-index():
+def index():
     return render_template('index.html')
 
 @app.route('/api/register', methods=['POST'])
@@ -69,5 +66,4 @@ def login():
         return jsonify({"success": False, "message": "Identifiants incorrects."}), 401
 
 if __name__ == '__main__':
-    print("=== ♟️ SERVEUR biche_chess LANCÉ ===")
     app.run(debug=True, port=5000)
