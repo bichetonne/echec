@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robot d'Échecs - Console Interactive</title>
+    <title>Robot d'Échecs - Configuration & Console</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -67,12 +67,12 @@
             margin-bottom: 10px;
         }
 
-        .mode-selector {
+        .options-group {
             display: flex;
             gap: 8px;
         }
 
-        .btn-mode {
+        .btn-option {
             flex: 1;
             padding: 10px 5px;
             border: 2px solid #444;
@@ -85,10 +85,27 @@
             transition: all 0.3s ease;
         }
 
-        .btn-mode.active {
+        .btn-option.active {
             border-color: var(--accent-color);
             background: rgba(197, 160, 89, 0.15);
             color: var(--accent-color);
+        }
+
+        .btn-start {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn-start:hover {
+            background-color: var(--accent-hover);
         }
 
         .input-group {
@@ -111,21 +128,6 @@
             border-color: var(--accent-color);
         }
 
-        .btn-action {
-            padding: 12px 20px;
-            background-color: var(--accent-color);
-            color: #121212;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .btn-action:hover {
-            background-color: var(--accent-hover);
-        }
-
         .log-box {
             background: #121212;
             border: 1px solid #333;
@@ -138,55 +140,82 @@
             color: #ccc;
             line-height: 1.6;
         }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
     <div class="main-container">
         <header>
-            <h1>🤖 Chess Robot Console</h1>
-            <p>Journal d'échanges détaillé des mouvements</p>
+            <h1>🤖 Chess Robot</h1>
+            <p id="headerSubtitle">Configurez votre partie</p>
         </header>
 
-        <div>
-            <div class="section-title">Difficulté du robot</div>
-            <div class="mode-selector">
-                <button class="btn-mode active" onclick="setMode('easy', this)">Facile</button>
-                <button class="btn-mode" onclick="setMode('intermediate', this)">Intermédiaire</button>
-                <button class="btn-mode" onclick="setMode('hard', this)">Difficile</button>
+        <!-- ÉCRAN DE CONFIGURATION (Avant la partie) -->
+        <div id="setupScreen" style="display: flex; flex-direction: column; gap: 20px;">
+            <div>
+                <div class="section-title">1. Choisissez la difficulté du robot</div>
+                <div class="options-group" id="difficultySelector">
+                    <button class="btn-option active" onclick="selectDifficulty('easy', this)">Facile</button>
+                    <button class="btn-option" onclick="selectDifficulty('intermediate', this)">Intermédiaire</button>
+                    <button class="btn-option" onclick="selectDifficulty('hard', this)">Difficile</button>
+                </div>
             </div>
+
+            <div>
+                <div class="section-title">2. Choisissez votre couleur</div>
+                <div class="options-group" id="colorSelector">
+                    <button class="btn-option active" onclick="selectColor('white', this)">Blancs (Vous commencez)</button>
+                    <button class="btn-option" onclick="selectColor('black', this)">Noirs (Le robot commence)</button>
+                </div>
+            </div>
+
+            <button class="btn-start" onclick="startNewGame()">Lancer la partie</button>
         </div>
 
-        <div>
-            <div class="section-title">Entrer votre coup</div>
-            <div class="input-group">
-                <input type="text" id="moveInput" placeholder="ex: e2e4" onkeypress="checkEnter(event)">
-                <button class="btn-action" onclick="submitMove()">Envoyer</button>
+        <!-- ÉCRAN DE JEU (Caché au départ) -->
+        <div id="gameScreen" class="hidden" style="display: flex; flex-direction: column; gap: 20px;">
+            <div>
+                <div class="section-title">Entrer votre coup</div>
+                <div class="input-group">
+                    <input type="text" id="moveInput" placeholder="ex: e2e4" onkeypress="checkEnter(event)">
+                    <button class="btn-option" style="flex: 0; padding: 12px 20px; background: var(--accent-color); color: #121212; border: none;" onclick="submitMove()">Envoyer</button>
+                </div>
             </div>
-        </div>
 
-        <div>
-            <div class="section-title">Journal de la partie</div>
-            <div class="log-box" id="logBox">
-                [System] Prêt. Mode Facile sélectionné.<br>
-                [System] Entrez votre premier coup (ex: e2e4).
+            <div>
+                <div class="section-title">Journal de la partie</div>
+                <div class="log-box" id="logBox">
+                    [System] Partie initialisée.
+                </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
-        const game = new Chess();
+        let game = new Chess();
         let currentDifficulty = 'easy';
+        let playerColor = 'white'; // 'white' ou 'black'
 
         const pieceNamesFr = {
-            'p': 'Pion',
-            'n': 'Cavalier',
-            'b': 'Fou',
-            'r': 'Tour',
-            'q': 'Dame',
-            'k': 'Roi'
+            'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi'
         };
+
+        function selectDifficulty(mode, btn) {
+            document.querySelectorAll('#difficultySelector .btn-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentDifficulty = mode;
+        }
+
+        function selectColor(color, btn) {
+            document.querySelectorAll('#colorSelector .btn-option').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            playerColor = color;
+        }
 
         function log(message) {
             const logBox = document.getElementById('logBox');
@@ -194,17 +223,22 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        function setMode(mode, btn) {
-            document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentDifficulty = mode;
+        function startNewGame() {
+            game = new Chess();
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
             
-            const modeNames = {
-                'easy': 'Facile',
-                'intermediate': 'Intermédiaire',
-                'hard': 'Difficile'
-            };
-            log(`[System] Mode basculé sur : ${modeNames[mode]}`);
+            const diffNames = { 'easy': 'Facile', 'intermediate': 'Intermédiaire', 'hard': 'Difficile' };
+            const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
+            
+            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;
+            
+            document.getElementById('logBox').innerHTML = `[System] Partie lancée ! Difficulté : ${diffNames[currentDifficulty]}. Vous jouez les ${colorName}.`;
+
+            // Si le joueur a choisi les Noirs, c'est au robot (Blancs) de jouer en premier
+            if (playerColor === 'black') {
+                triggerRobotTurn();
+            }
         }
 
         function checkEnter(event) {
@@ -249,22 +283,29 @@
                     return;
                 }
 
-                log(`<i>Le robot réfléchit (${currentDifficulty})...</i>`);
-                setTimeout(() => {
-                    // CORRECTION ICI : Utilisation de game.moves({ verbose: true }) à la place de verbose_moves()
-                    const possibleMoves = game.moves({ verbose: true });
-                    if (possibleMoves.length > 0) {
-                        let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                        game.move(chosenMoveObj);
-
-                        const robotDesc = formatMoveDescription(chosenMoveObj, "🤖 Robot");
-                        log(`<b>${robotDesc}</b>`);
-                    }
-                }, 600);
+                triggerRobotTurn();
 
             } catch (e) {
                 log(`❌ Erreur de format de coup.`);
             }
+        }
+
+        function triggerRobotTurn() {
+            log(`<i>Le robot réfléchit (${currentDifficulty})...</i>`);
+            setTimeout(() => {
+                const possibleMoves = game.moves({ verbose: true });
+                if (possibleMoves.length > 0) {
+                    let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                    game.move(chosenMoveObj);
+
+                    const robotDesc = formatMoveDescription(chosenMoveObj, "🤖 Robot");
+                    log(`<b>${robotDesc}</b>`);
+
+                    if (game.game_over()) {
+                        log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
+                    }
+                }
+            }, 600);
         }
     </script>
 </body>
