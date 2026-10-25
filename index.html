@@ -214,12 +214,13 @@
             <div>
                 <div class="section-title">1. Choisissez la difficulté du robot</div>
                 <div class="options-group" id="difficultySelector">
-                    <button class="btn-option active" onclick="selectDifficulty('sub_200', this)">Débutant (0-200 Elo)</button>
-                    <button class="btn-option" onclick="selectDifficulty('sub_600', this)">Écolier (400-600 Elo)</button>
-                    <button class="btn-option" onclick="selectDifficulty('easy', this)">Facile (~600-800 Elo)</button>
-                    <button class="btn-option" onclick="selectDifficulty('easy_plus', this)">Facile + (~1000-1200 Elo)</button>
-                    <button class="btn-option" onclick="selectDifficulty('intermediate', this)">Intermédiaire (~1400-1600 Elo)</button>
-                    <button class="btn-option" onclick="selectDifficulty('hard', this)">Difficile (Niveau Max)</button>
+                    <button class="btn-option active" onclick="selectDifficulty('level_0_200', this)">0 à 200 Elo</button>
+                    <button class="btn-option" onclick="selectDifficulty('level_400_600', this)">400 à 600 Elo</button>
+                    <button class="btn-option" onclick="selectDifficulty('level_600_800', this)">600 à 800 Elo</button>
+                    <button class="btn-option" onclick="selectDifficulty('level_800_1000', this)">800 à 1000 Elo</button>
+                    <button class="btn-option" onclick="selectDifficulty('level_1000_1200', this)">1000 à 1200 Elo</button>
+                    <button class="btn-option" onclick="selectDifficulty('level_1200_1400', this)">1200 à 1400 Elo</button>
+                    <button class="btn-option" onclick="selectDifficulty('max_level', this)" style="grid-column: span 2;">Niveau Max</button>
                 </div>
             </div>
 
@@ -256,7 +257,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script>
         let game = new Chess();
-        let currentDifficulty = 'sub_200';
+        let currentDifficulty = 'level_0_200';
         let playerColor = 'white';
 
         const pieceNamesFr = {
@@ -264,12 +265,13 @@
         };
 
         const diffNames = {
-            'sub_200': 'Débutant (0-200 Elo)',
-            'sub_600': 'Écolier (400-600 Elo)',
-            'easy': 'Facile (~600-800 Elo)',
-            'easy_plus': 'Facile + (~1000-1200 Elo)',
-            'intermediate': 'Intermédiaire (~1400-1600 Elo)',
-            'hard': 'Difficile (Niveau Max)'
+            'level_0_200': '0 à 200 Elo',
+            'level_400_600': '400 à 600 Elo',
+            'level_600_800': '600 à 800 Elo',
+            'level_800_1000': '800 à 1000 Elo',
+            'level_1000_1200': '1000 à 1200 Elo',
+            'level_1200_1400': '1200 à 1400 Elo',
+            'max_level': 'Niveau Max'
         };
 
         function selectDifficulty(mode, btn) {
@@ -285,4 +287,4 @@
         }
 
         function log(message) {
-            const logBox = document.
+            const logBox = document.getElementById('logBox');
