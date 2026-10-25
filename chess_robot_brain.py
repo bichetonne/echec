@@ -20,14 +20,22 @@ class ChessRobotAI:
 
     def configure_difficulty(self):
         if self.difficulty == "easy":
-            self.engine.configure({"Skill Level": 3})
+            # Niveau ~600-800 Elo
+            self.engine.configure({"Skill Level": 2})
             self.limit = chess.engine.Limit(time=0.2)
-            print("🤖 Mode Facile activé (Niveau 3).")
+            print("🤖 Mode Facile activé (~600-800 Elo).")
+        elif self.difficulty == "easy_plus":
+            # Niveau ~1000-1200 Elo
+            self.engine.configure({"Skill Level": 7})
+            self.limit = chess.engine.Limit(time=0.3)
+            print("🤖 Mode Facile + activé (~1000-1200 Elo).")
         elif self.difficulty == "intermediate":
-            self.engine.configure({"Skill Level": 12})
+            # Niveau ~1400-1600 Elo
+            self.engine.configure({"Skill Level": 14})
             self.limit = chess.engine.Limit(time=0.5)
-            print("🤖 Mode Intermédiaire activé (Niveau 12).")
+            print("🤖 Mode Intermédiaire activé (~1400-1600 Elo).")
         elif self.difficulty == "hard":
+            # Niveau Maximum (3000+ Elo)
             self.engine.configure({"Skill Level": 20})
             self.limit = chess.engine.Limit(time=2.0)
             print("🤖 Mode Difficile activé (Niveau MAX).")
@@ -92,13 +100,23 @@ class ChessRobotAI:
 if __name__ == "__main__":
     print("=== CONFIGURATION DU ROBOT D'ÉCHECS ===")
     
-    # 1. Choix de la difficulté
+    # 1. Choix de la difficulté avec le Mode Facile +
     print("Choisissez le niveau de difficulté :")
-    print("1. Facile")
-    print("2. Intermédiaire")
-    print("3. Difficile")
-    diff_choice = input("Votre choix (1, 2 ou 3) : ").strip()
-    diff_mode = "easy" if diff_choice == "1" else ("hard" if diff_choice == "3" else "intermediate")
+    print("1. Facile (~600-800 Elo)")
+    print("2. Facile + (~1000-1200 Elo)")
+    print("3. Intermédiaire (~1400-1600 Elo)")
+    print("4. Difficile (Niveau Max)")
+    
+    diff_choice = input("Votre choix (1, 2, 3 ou 4) : ").strip()
+    
+    if diff_choice == "2":
+        diff_mode = "easy_plus"
+    elif diff_choice == "3":
+        diff_mode = "intermediate"
+    elif diff_choice == "4":
+        diff_mode = "hard"
+    else:
+        diff_mode = "easy"
     
     # 2. Choix de la couleur
     print("\nChoisissez votre couleur :")
@@ -114,7 +132,6 @@ if __name__ == "__main__":
 
     try:
         while not robot.board.is_game_over():
-            # Si c'est au tour du robot de jouer (ex: si le joueur est Noir et que c'est le début)
             if robot.board.turn != robot.player_color:
                 robot_action_text = robot.play_robot_turn()
                 if robot_action_text:
