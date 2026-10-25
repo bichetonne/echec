@@ -90,7 +90,7 @@
         }
 
         @media (min-width: 500px) {
-            .options-group { grid-template-columns: repeat(2, 1fr); }
+            .options-group { grid-template-columns: repeat(3, 1fr); }
         }
 
         .options-group.colors {
@@ -214,13 +214,9 @@
             <div>
                 <div class="section-title">1. Choisissez la difficulté du robot</div>
                 <div class="options-group" id="difficultySelector">
-                    <button class="btn-option active" data-diff="level_0_200">0 à 200 Elo</button>
-                    <button class="btn-option" data-diff="level_400_600">400 à 600 Elo</button>
-                    <button class="btn-option" data-diff="level_600_800">600 à 800 Elo</button>
-                    <button class="btn-option" data-diff="level_800_1000">800 à 1000 Elo</button>
-                    <button class="btn-option" data-diff="level_1000_1200">1000 à 1200 Elo</button>
-                    <button class="btn-option" data-diff="level_1200_1400">1200 à 1400 Elo</button>
-                    <button class="btn-option" data-diff="max_level" style="grid-column: span 2;">Niveau Max</button>
+                    <button class="btn-option active" data-diff="easy">Facile</button>
+                    <button class="btn-option" data-diff="intermediate">Intermédiaire</button>
+                    <button class="btn-option" data-diff="hard">Difficile</button>
                 </div>
             </div>
 
@@ -240,7 +236,7 @@
             <div>
                 <div class="section-title">Entrer votre coup</div>
                 <div class="input-group">
-                    <input type="text" id="moveInput" placeholder="ex: e2e4">
+                    <input type="text" id="moveInput" placeholder="ex: e2e4 ou E2E4">
                     <button class="btn-option btn-send" id="sendBtn" style="flex: 0; padding: 12px 18px;">Envoyer</button>
                 </div>
             </div>
@@ -254,11 +250,10 @@
         </div>
     </div>
 
-    <!-- Chargement de chess.js via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
     <script>
         let game = null;
-        let currentDifficulty = 'level_0_200';
+        let currentDifficulty = 'easy';
         let playerColor = 'white';
 
         const pieceNamesFr = {
@@ -266,138 +261,13 @@
         };
 
         const diffNames = {
-            'level_0_200': '0 à 200 Elo',
-            'level_400_600': '400 à 600 Elo',
-            'level_600_800': '600 à 800 Elo',
-            'level_800_1000': '800 à 1000 Elo',
-            'level_1000_1200': '1000 à 1200 Elo',
-            'level_1200_1400': '1200 à 1400 Elo',
-            'max_level': 'Niveau Max'
+            'easy': 'Facile',
+            'intermediate': 'Intermédiaire',
+            'hard': 'Difficile'
         };
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Gestion des boutons de difficulté (fonctionne toujours)
             const diffButtons = document.querySelectorAll('#difficultySelector .btn-option');
             diffButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
-                    diffButtons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentDifficulty = this.getAttribute('data-diff');
-                });
-            });
-
-            // Gestion des boutons de couleur (fonctionne toujours)
-            const colorButtons = document.querySelectorAll('#colorSelector .btn-option');
-            colorButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    colorButtons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    playerColor = this.getAttribute('data-color');
-                });
-            });
-
-            // Bouton de lancement
-            document.getElementById('startBtn').addEventListener('click', startNewGame);
-
-            // Bouton d'envoi de coup
-            document.getElementById('sendBtn').addEventListener('click', submitMove);
-
-            // Touche Entrée sur le champ de texte
-            document.getElementById('moveInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    submitMove();
-                }
-            });
-        });
-
-        function log(message) {
-            const logBox = document.getElementById('logBox');
-            logBox.innerHTML += `<br>${message}`;
-            logBox.scrollTop = logBox.scrollHeight;
-        }
-
-        function startNewGame() {
-            // Vérification de la bibliothèque au moment du clic
-            if (typeof Chess === 'undefined') {
-                alert("Erreur : La bibliothèque chess.js ne s'est pas chargée. Vérifiez votre connexion Internet.");
-                return;
-            }
-            
-            game = new Chess();
-            document.getElementById('setupScreen').classList.add('hidden');
-            document.getElementById('gameScreen').classList.remove('hidden');
-            
-            const colorName = playerColor === 'white' ? 'Blancs' : 'Noirs';
-            
-            document.getElementById('headerSubtitle').textContent = `Mode : ${diffNames[currentDifficulty]} | Vous jouez les ${colorName}`;
-            document.getElementById('logBox').innerHTML = `[biche_chess] Partie lancée ! Difficulté : ${diffNames[currentDifficulty]}. Vous jouez les ${colorName}.`;
-
-            if (playerColor === 'black') {
-                triggerRobotTurn();
-            }
-        }
-
-        function formatMoveDescription(moveObj, actor) {
-            const pieceName = pieceNamesFr[moveObj.piece] || 'Pièce';
-            const fromSq = moveObj.from;
-            const toSq = moveObj.to;
-
-            if (moveObj.captured) {
-                const capturedName = pieceNamesFr[moveObj.captured] || 'pion';
-                return `${actor} : ${pieceName} ${fromSq} en ${toSq} (capture ${capturedName})`;
-            } else {
-                return `${actor} : ${pieceName} ${fromSq} en ${toSq}`;
-            }
-        }
-
-        function submitMove() {
-            const input = document.getElementById('moveInput');
-            const moveStr = input.value.trim().toLowerCase(); // Prend en compte les majuscules (ex: E2E4 -> e2e4)
-            if (!moveStr || !game) return;
-
-            try {
-                let tempGameForHuman = new Chess(game.fen());
-                let moveObj = tempGameForHuman.move(moveStr, { sloppy: true });
-                
-                if (moveObj === null) {
-                    log(`❌ Coup illégal ou invalide : "${input.value}"`);
-                    return;
-                }
-
-                game.move(moveStr, { sloppy: true });
-                log(`👤 <b>${formatMoveDescription(moveObj, "Vous")}</b>`);
-                input.value = '';
-
-                if (game.game_over()) {
-                    log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
-                    return;
-                }
-
-                triggerRobotTurn();
-
-            } catch (e) {
-                log(`❌ Erreur de format de coup.`);
-            }
-        }
-
-        function triggerRobotTurn() {
-            log(`<i>biche_chess réfléchit (${diffNames[currentDifficulty]})...</i>`);
-            setTimeout(() => {
-                if (!game) return;
-                const possibleMoves = game.moves({ verbose: true });
-                if (possibleMoves.length > 0) {
-                    let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                    game.move(chosenMoveObj);
-
-                    const robotDesc = formatMoveDescription(chosenMoveObj, "🤖 biche_chess");
-                    log(`<b>${robotDesc}</b>`);
-
-                    if (game.game_over()) {
-                        log(`🏁 Partie terminée ! Résultat : ${game.in_checkmate() ? 'Échec et mat' : 'Égalité'}`);
-                    }
-                }
-            }, 600);
-        }
-    </script>
-</body>
-</html>
+                    diffButtons.forEach(b => b.classList.remove
