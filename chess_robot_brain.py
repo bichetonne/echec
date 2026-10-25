@@ -51,7 +51,6 @@ class ChessRobotAI:
             raise ValueError("Mode inconnu.")
 
     def format_move_description(self, move, actor_prefix):
-        """Formate le texte sous la forme : [Pièce] [départ] en [arrivée]"""
         piece = self.board.piece_at(move.from_square)
         if not piece:
             return str(move)
@@ -90,7 +89,10 @@ class ChessRobotAI:
 
     def play_human_turn(self, move_uci):
         try:
-            move = chess.Move.from_uci(move_uci)
+            # Convertit la saisie en minuscules pour accepter les majuscules (ex: E2E4)
+            move_uci_cleaned = move_uci.strip().lower()
+            move = chess.Move.from_uci(move_uci_cleaned)
+            
             if move in self.board.legal_moves:
                 description = self.format_move_description(move, "👤 Vous")
                 self.board.push(move)
@@ -100,7 +102,7 @@ class ChessRobotAI:
                 print("Coup illégal ! Réessayez.")
                 return False
         except ValueError:
-            print("Format de coup invalide (utilisez ex: e2e4).")
+            print("Format de coup invalide (utilisez ex: e2e4 ou E2E4).")
             return False
 
     def close(self):
@@ -140,7 +142,7 @@ if __name__ == "__main__":
     robot = ChessRobotAI(difficulty=diff_mode, player_color=player_color)
     
     color_str = "Noirs" if player_color == chess.BLACK else "Blancs"
-    print(f"\nPartie lancée sous biche_chess ! Vous jouez les {color_str}. Entrez vos coups au format UCI (ex: 'e2e4'). Tapez 'exit' pour quitter.\n")
+    print(f"\nPartie lancée sous biche_chess ! Vous jouez les {color_str}. Entrez vos coups au format UCI (ex: 'e2e4' ou 'E2E4'). Tapez 'exit' pour quitter.\n")
 
     try:
         while not robot.board.is_game_over():
