@@ -323,7 +323,7 @@
             </div>
             <div class="header-right" id="headerRightProfile">
                 <div class="user-tag" id="displayUsername">Utilisateur</div>
-                <div class="elo-tag">Elo : <span id="displayElo">1200</span></div>
+                <div class="elo-tag" id="eloDisplayContainer">Elo : <span id="displayElo">1200</span></div>
             </div>
         </header>
 
@@ -369,10 +369,10 @@
             <button class="btn-back" id="backToAuthFromLeaderboardBtn">Retour</button>
         </div>
 
-        <!-- 3. ÉCRAN DE CONFIGURATION -->
+        <!-- 3. ÉCRAN DE CONFIGURATION (Uniquement pour les invités) -->
         <div id="setupScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
-                <div class="section-title">1. Niveau de difficulté</div>
+                <div class="section-title">1. Niveau de difficulté (1 à 20)</div>
                 <div class="slider-box">
                     <input type="range" id="skillSlider" min="1" max="20" value="5" class="skill-slider">
                     <div class="slider-info">
@@ -495,12 +495,25 @@
                         currentElo = data.elo !== undefined ? data.elo : 1200;
 
                         document.getElementById('displayUsername').textContent = currentUser;
+                        
+                        // Affichage du profil dans l'en-tête (Pas d'Elo pour les invités, mais affiché pour les comptes)
+                        const eloContainer = document.getElementById('eloDisplayContainer');
+                        eloContainer.style.display = 'block';
                         document.getElementById('displayElo').textContent = currentElo;
                         document.getElementById('headerRightProfile').classList.add('active');
 
                         document.getElementById('authScreen').classList.add('hidden');
-                        document.getElementById('setupScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Configuration de la partie`;
+
+                        // Pour les inscrits/connectés : on ne passe plus par le choix 1-20, la partie se lance directement !
+                        // On associe un niveau de robot selon l'Elo du compte (ex: Débutant=4, Moyen=8, Pro=14)
+                        if (currentElo <= 900) currentSkillLevel = 4;
+                        else if (currentElo <= 1300) currentSkillLevel = 8;
+                        else currentSkillLevel = 14;
+
+                        playerColor = 'white';
+                        document.getElementById('headerSubtitle').textContent = `Connecté | Robot Niv. ${currentSkillLevel}`;
+                        startNewGame();
+
                     } else {
                         msgDiv.textContent = data.message;
                     }
@@ -509,12 +522,14 @@
                 }
             });
 
+            // Bouton Invité : Eux ont accès à la configuration de 1 à 20
             document.getElementById('guestBtn').addEventListener('click', function() {
                 currentUser = "Invité";
                 currentElo = 1200;
 
                 document.getElementById('displayUsername').textContent = currentUser;
-                document.getElementById('displayElo').textContent = currentElo;
+                // Masquer l'Elo pour le mode invité
+                document.getElementById('eloDisplayContainer').style.display = 'none';
                 document.getElementById('headerRightProfile').classList.add('active');
 
                 document.getElementById('authScreen').classList.add('hidden');
@@ -522,7 +537,6 @@
                 document.getElementById('headerSubtitle').textContent = `Mode Invité - Configuration`;
             });
 
-            // Boutons Retour de chaque écran
             document.getElementById('leaderboardBtn').addEventListener('click', async function() {
                 try {
                     const res = await fetch('/api/leaderboard');
@@ -558,8 +572,14 @@
             document.getElementById('backToSetupFromGameBtn').addEventListener('click', function() {
                 if (confirm("Voulez-vous vraiment quitter la partie en cours ?")) {
                     document.getElementById('gameScreen').classList.add('hidden');
-                    document.getElementById('setupScreen').classList.remove('hidden');
-                    document.getElementById('headerSubtitle').textContent = "Configuration de la partie";
+                    if (currentUser === "Invité") {
+                        document.getElementById('setupScreen').classList.remove('hidden');
+                        document.getElementById('headerSubtitle').textContent = "Mode Invité - Configuration";
+                    } else {
+                        document.getElementById('authScreen').classList.remove('hidden');
+                        document.getElementById('headerRightProfile').classList.remove('active');
+                        document.getElementById('headerSubtitle').textContent = "Portail d'authentification";
+                    }
                 }
             });
 
@@ -598,7 +618,11 @@
             document.getElementById('setupScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
             
-            document.getElementById('headerSubtitle').textContent = `Niv. ${currentSkillLevel} (${chessComEloMap[currentSkillLevel]})`;
+            if (currentUser !== "Invité") {
+                document.getElementById('headerSubtitle').textContent = `${currentUser} | Robot Niv. ${currentSkillLevel}`;
+            } else {
+                document.getElementById('headerSubtitle').textContent = `Invité | Niv. ${currentSkillLevel} (${chessComEloMap[currentSkillLevel]})`;
+            }
             document.getElementById('logEntries').innerHTML = '';
 
             if (playerColor === 'black') {
@@ -620,6 +644,7 @@
         }
 
         function handleGameOver() {
+            if (currentUser === "Invité") return; // Pas d'Elo pour les invités
             let eloChange = 15; 
             currentElo += eloChange;
             document.getElementById('displayElo').textContent = currentElo;
