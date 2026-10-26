@@ -139,7 +139,27 @@ def save_game():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-# --- INTELLIGENCE ARTIFICIELLE TACTIQUE ET ROBUSTE ---
+# --- ÉVALUATION DE LA NULLE PAR STOCKFISH ---
+@app.route('/api/offer_draw', methods=['POST'])
+def offer_draw():
+    data = request.json
+    fen = data.get('fen')
+    board = chess.Board(fen)
+
+    try:
+        transport, engine = chess.engine.popen_uci(STOCKFISH_PATH)
+        info = engine.analyse(board, chess.engine.Limit(time=0.3))
+        score = info["score"].relative.score(mate_score=10000)
+        engine.quit()
+
+        # Si le score de l'IA n'est pas trop écrasant (< 1.5 pion d'avance), elle accepte la nulle
+        if score is not None and score < 150:
+            return jsonify({"accepted": True, "message": "Le robot analyse la position et accepte la proposition de nulle."})
+        else:
+            return jsonify({"accepted": False, "message": "Le robot refuse la nulle ! Il estime avoir l'avantage."})
+    except Exception:
+        return jsonify({"accepted": True, "message": "Le robot accepte la nulle."})
+
 @app.route('/api/robot_move', methods=['POST'])
 def robot_move():
     data = request.json
@@ -149,53 +169,34 @@ def robot_move():
     board = chess.Board(fen)
 
     try:
-        # Essaye d'utiliser Stockfish si disponible
         transport, engine = chess.engine.popen_uci(STOCKFISH_PATH)
         engine.configure({"Skill Level": skill_level})
         result = engine.play(board, chess.engine.Limit(time=0.5))
         engine.quit()
         return jsonify({"success": True, "move": result.move.uci()})
     except Exception:
-        # CERVEAU TACTIQUE DE SECOURS (Impitoyable et intelligent)
         legal_moves = list(board.legal_moves)
         if not legal_moves:
             return jsonify({"success": False, "message": "Aucun coup disponible"}), 500
 
-        # Barème de valeur des pièces pour cibler les meilleures captures
-        piece_values = {
-            chess.PAWN: 1,
-            chess.KNIGHT: 3,
-            chess.BISHOP: 3,
-            chess.ROOK: 5,
-            chess.QUEEN: 9,
-            chess.KING: 100
-        }
-
+        piece_values = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3, chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 100}
         best_move = legal_moves[0]
         best_score = -99999
 
         for move in legal_moves:
             score = 0
-            
-            # Évaluation des captures (le robot cherche à manger vos pièces)
             if board.is_capture(move):
                 captured_piece = board.piece_at(move.to_square)
                 if captured_piece:
                     score += piece_values.get(captured_piece.piece_type, 1) * 15
-                else:
-                    score += 10 # En passant
-
-            # Simulation du coup pour chercher les échecs et mat
             board.push(move)
             if board.is_checkmate():
-                score += 100000 # Priorité absolue au mat
+                score += 100000
             elif board.is_check():
-                score += 25     # Aime mettre en échec
+                score += 25
             board.pop()
 
-            # Légère variation aléatoire pour départager les coups équivalents
             score += random.uniform(0, 0.4)
-
             if score > best_score:
                 best_score = score
                 best_move = move

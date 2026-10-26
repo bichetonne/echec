@@ -57,7 +57,6 @@
             .main-container { padding: 30px; }
         }
 
-        /* --- EFFETS VISUELS D'ANIMATION --- */
         @keyframes shake {
             0% { transform: translate(0, 0); }
             20% { transform: translate(-4px, 2px); }
@@ -167,7 +166,7 @@
             background: linear-gradient(to bottom, #e6b347, #b87d21);
         }
 
-        .btn-guest, .btn-leaderboard, .btn-back {
+        .btn-guest, .btn-leaderboard, .btn-back, .btn-action {
             width: 100%;
             padding: 12px;
             background: rgba(33, 21, 12, 0.6);
@@ -182,7 +181,7 @@
             text-align: center;
         }
 
-        .btn-guest:hover, .btn-leaderboard:hover, .btn-back:hover {
+        .btn-guest:hover, .btn-leaderboard:hover, .btn-back:hover, .btn-action:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
             background: rgba(212, 155, 43, 0.08);
@@ -288,6 +287,11 @@
         }
 
         .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .game-actions {
             display: flex;
             gap: 10px;
         }
@@ -441,6 +445,12 @@
                 </div>
             </div>
 
+            <!-- BOUTONS D'ACTION : PROPOSER NULLE & ABANDONNER -->
+            <div class="game-actions">
+                <button class="btn-action" id="drawBtn">🤝 Proposer nulle</button>
+                <button class="btn-action" id="resignBtn" style="color: #e67373; border-color: #8c3232;">🏳️ Abandonner</button>
+            </div>
+
             <div>
                 <div class="section-title">Journal Tactique (Entraînement en cours)</div>
                 <div class="log-box" id="logBox">
@@ -453,7 +463,7 @@
                 </div>
             </div>
 
-            <button class="btn-back" id="backToSetupFromGameBtn">Abandonner / Retour</button>
+            <button class="btn-back" id="backToSetupFromGameBtn">Retour au menu</button>
         </div>
     </div>
 
@@ -467,7 +477,6 @@
         let currentElo = 1200;
         let selectedLevel = 'moyen';
 
-        // --- SYNTHÉTISEUR AUDIO WEB API ---
         let audioCtx = null;
 
         function initAudio() {
@@ -488,7 +497,6 @@
                 gain.connect(audioCtx.destination);
 
                 if (type === 'move') {
-                    // Son de déplacement doux
                     osc.frequency.setValueAtTime(350, audioCtx.currentTime);
                     osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.07);
                     gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
@@ -496,7 +504,6 @@
                     osc.start();
                     osc.stop(audioCtx.currentTime + 0.07);
                 } else if (type === 'capture') {
-                    // Son sec de capture de pièce
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(160, audioCtx.currentTime);
                     osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.12);
@@ -505,7 +512,6 @@
                     osc.start();
                     osc.stop(audioCtx.currentTime + 0.12);
                 } else if (type === 'win') {
-                    // Jingle de victoire
                     [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
                         const o = audioCtx.createOscillator();
                         const g = audioCtx.createGain();
@@ -518,7 +524,6 @@
                         o.stop(audioCtx.currentTime + i * 0.1 + 0.2);
                     });
                 } else if (type === 'loss') {
-                    // Tonalité de défaite
                     [300, 240, 180].forEach((freq, i) => {
                         const o = audioCtx.createOscillator();
                         const g = audioCtx.createGain();
@@ -532,23 +537,17 @@
                     });
                 }
             } catch (e) {
-                console.log("Audio non pris en charge ou bloqué par le navigateur");
+                console.log("Audio non pris en charge");
             }
         }
 
-        // --- EFFETS VISUELS (Secousse et Flash) ---
         function triggerVisualEffect(effectType) {
             const container = document.getElementById('mainContainer');
             if (!container) return;
-            
             container.classList.remove('shake-effect', 'flash-effect');
-            void container.offsetWidth; // Force le reflow CSS
-
-            if (effectType === 'shake') {
-                container.classList.add('shake-effect');
-            } else if (effectType === 'flash') {
-                container.classList.add('flash-effect');
-            }
+            void container.offsetWidth;
+            if (effectType === 'shake') container.classList.add('shake-effect');
+            else if (effectType === 'flash') container.classList.add('flash-effect');
         }
 
         const chessComEloMap = {
@@ -572,12 +571,8 @@
                 document.getElementById('authBtn').textContent = isLoginMode ? "Se connecter" : "S'inscrire";
                 authSwitchText.innerHTML = isLoginMode ? "Pas encore de compte ? <span>S'inscrire</span>" : "Déjà un compte ? <span>Se connecter</span>";
                 document.getElementById('authMsg').textContent = "";
-
-                if (isLoginMode) {
-                    registerOptionsContainer.classList.add('hidden');
-                } else {
-                    registerOptionsContainer.classList.remove('hidden');
-                }
+                if (isLoginMode) registerOptionsContainer.classList.add('hidden');
+                else registerOptionsContainer.classList.remove('hidden');
             });
 
             const levelButtons = document.querySelectorAll('#levelSelector .btn-option');
@@ -705,15 +700,36 @@
             });
 
             document.getElementById('backToSetupFromGameBtn').addEventListener('click', function() {
-                if (confirm("Voulez-vous vraiment quitter la partie en cours ?")) {
-                    document.getElementById('gameScreen').classList.add('hidden');
-                    if (currentUser === "Invité") {
-                        document.getElementById('setupScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = "Mode Invité - Configuration";
-                    } else {
-                        document.getElementById('accountColorScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Salon Vintage | Niv. 20`;
+                if (confirm("Voulez-vous vraiment quitter la partie en cours ? Cela comptera comme un abandon.")) {
+                    resignGame();
+                }
+            });
+
+            // Bouton Abandonner
+            document.getElementById('resignBtn').addEventListener('click', function() {
+                if (confirm("Êtes-vous sûr de vouloir abandonner cette partie ?")) {
+                    resignGame();
+                }
+            });
+
+            // Bouton Proposer Nulle
+            document.getElementById('drawBtn').addEventListener('click', async function() {
+                if (!game) return;
+                try {
+                    const response = await fetch('/api/offer_draw', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fen: game.fen() })
+                    });
+                    const data = await response.json();
+                    alert(data.message);
+
+                    if (data.accepted) {
+                        saveTrainingGame('draw');
+                        returnToMenu();
                     }
+                } catch (err) {
+                    alert("Impossible de proposer la nulle pour le moment.");
                 }
             });
 
@@ -793,6 +809,28 @@
             }
         }
 
+        function resignGame() {
+            if (currentUser !== "Invité") {
+                saveTrainingGame('loss');
+                currentElo = Math.max(100, currentElo - 15);
+                document.getElementById('displayElo').textContent = currentElo;
+                updateDatabaseElo(currentElo);
+                alert("Vous avez abandonné la partie. (-15 Elo)");
+            }
+            playSound('loss');
+            triggerVisualEffect('shake');
+            returnToMenu();
+        }
+
+        function returnToMenu() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            if (currentUser === "Invité") {
+                document.getElementById('setupScreen').classList.remove('hidden');
+            } else {
+                document.getElementById('accountColorScreen').classList.remove('hidden');
+            }
+        }
+
         function evaluateGameOutcome() {
             if (game.in_checkmate()) {
                 const playerIsWhite = (playerColor === 'white');
@@ -804,7 +842,11 @@
         }
 
         function handleGameOver() {
-            if (currentUser === "Invité") return;
+            if (currentUser === "Invité") {
+                alert("Partie terminée !");
+                returnToMenu();
+                return;
+            }
 
             const outcome = evaluateGameOutcome();
             let eloChange = 0;
@@ -830,6 +872,7 @@
             currentElo = Math.max(100, currentElo + eloChange);
             document.getElementById('displayElo').textContent = currentElo;
             updateDatabaseElo(currentElo);
+            returnToMenu();
         }
 
         function logMoveToTacticalView(moveObj) {
@@ -888,7 +931,6 @@
                     return;
                 }
 
-                // Déclenchement son et visuel selon capture
                 if (moveObj.captured) {
                     playSound('capture');
                     triggerVisualEffect('shake');
