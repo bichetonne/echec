@@ -923,7 +923,6 @@
             if (!moveStr || !game) return;
 
             try {
-                // Détection de promotion de pion (ex: e7e8)
                 let from = moveStr.substring(0, 2);
                 let to = moveStr.substring(2, 4);
                 let piece = game.get(from);

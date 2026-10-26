@@ -139,7 +139,6 @@ def save_game():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-# --- ÉVALUATION DE LA NULLE PAR STOCKFISH ---
 @app.route('/api/offer_draw', methods=['POST'])
 def offer_draw():
     data = request.json
@@ -152,7 +151,6 @@ def offer_draw():
         score = info["score"].relative.score(mate_score=10000)
         engine.quit()
 
-        # Si le score de l'IA n'est pas trop écrasant (< 1.5 pion d'avance), elle accepte la nulle
         if score is not None and score < 150:
             return jsonify({"accepted": True, "message": "Le robot analyse la position et accepte la proposition de nulle."})
         else:
