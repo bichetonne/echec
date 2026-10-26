@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>biche_chess - Bois Vintage</title>
+    <title>biche_chess - Salon Vintage</title>
     <style>
         :root {
-            /* --- THÈME BOIS VINTAGE --- */
-            --bg-color: #1a110a;          /* Fond bois très sombre et chaleureux */
-            --panel-bg: #322115;          /* Panneau couleur bois noyer / acajou */
-            --panel-border: #5c3a21;      /* Bordure bois sculpté */
-            --accent-color: #d49b2b;      /* Or vieilli / laiton */
+            --bg-color: #1a110a;
+            --panel-bg: #322115;
+            --panel-border: #5c3a21;
+            --accent-color: #d49b2b;
             --accent-hover: #e6b347;
-            --text-color: #f5eedc;        /* Parchemin / Ivoire clair */
-            --text-muted: #b8a68d;        /* Bois vieilli clair */
-            --input-bg: #21150c;          /* Fond de champ sombre texturé */
+            --text-color: #f5eedc;
+            --text-muted: #b8a68d;
+            --input-bg: #21150c;
             
             --log-panel-bg: rgba(50, 33, 21, 0.92);
             --log-border: rgba(92, 58, 33, 0.8);
@@ -51,11 +50,30 @@
             display: flex;
             flex-direction: column;
             gap: 18px;
+            transition: box-shadow 0.3s ease;
         }
 
         @media (min-width: 768px) {
             .main-container { padding: 30px; }
         }
+
+        /* --- EFFETS VISUELS D'ANIMATION --- */
+        @keyframes shake {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-4px, 2px); }
+            40% { transform: translate(4px, -2px); }
+            60% { transform: translate(-2px, -1px); }
+            80% { transform: translate(2px, 1px); }
+            100% { transform: translate(0, 0); }
+        }
+        .shake-effect { animation: shake 0.3s ease-in-out; }
+
+        @keyframes flashGold {
+            0% { box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 0 2px var(--panel-border); }
+            50% { box-shadow: 0 12px 45px rgba(212, 155, 43, 0.7), 0 0 0 3px var(--accent-color); }
+            100% { box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), 0 0 0 2px var(--panel-border); }
+        }
+        .flash-effect { animation: flashGold 0.4s ease-in-out; }
 
         header { 
             display: flex;
@@ -319,7 +337,7 @@
 </head>
 <body>
 
-    <div class="main-container">
+    <div class="main-container" id="mainContainer">
         <header>
             <div class="header-left">
                 <h1>♟️ biche_chess</h1>
@@ -449,6 +467,90 @@
         let currentElo = 1200;
         let selectedLevel = 'moyen';
 
+        // --- SYNTHÉTISEUR AUDIO WEB API ---
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'move') {
+                    // Son de déplacement doux
+                    osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.07);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.07);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.07);
+                } else if (type === 'capture') {
+                    // Son sec de capture de pièce
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.12);
+                } else if (type === 'win') {
+                    // Jingle de victoire
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
+                        g.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.1);
+                        g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.2);
+                        o.start(audioCtx.currentTime + i * 0.1);
+                        o.stop(audioCtx.currentTime + i * 0.1 + 0.2);
+                    });
+                } else if (type === 'loss') {
+                    // Tonalité de défaite
+                    [300, 240, 180].forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.15);
+                        g.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.15);
+                        g.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.15 + 0.25);
+                        o.start(audioCtx.currentTime + i * 0.15);
+                        o.stop(audioCtx.currentTime + i * 0.15 + 0.25);
+                    });
+                }
+            } catch (e) {
+                console.log("Audio non pris en charge ou bloqué par le navigateur");
+            }
+        }
+
+        // --- EFFETS VISUELS (Secousse et Flash) ---
+        function triggerVisualEffect(effectType) {
+            const container = document.getElementById('mainContainer');
+            if (!container) return;
+            
+            container.classList.remove('shake-effect', 'flash-effect');
+            void container.offsetWidth; // Force le reflow CSS
+
+            if (effectType === 'shake') {
+                container.classList.add('shake-effect');
+            } else if (effectType === 'flash') {
+                container.classList.add('flash-effect');
+            }
+        }
+
         const chessComEloMap = {
             1: "250 Elo", 2: "400 Elo", 3: "600 Elo", 4: "800 Elo", 5: "1000 Elo",
             6: "1200 Elo", 7: "1400 Elo", 8: "1550 Elo", 9: "1700 Elo", 10: "1850 Elo",
@@ -488,6 +590,7 @@
             });
 
             document.getElementById('authBtn').addEventListener('click', async function() {
+                initAudio();
                 const username = document.getElementById('usernameInput').value.trim();
                 const password = document.getElementById('passwordInput').value.trim();
                 const msgDiv = document.getElementById('authMsg');
@@ -523,7 +626,7 @@
 
                         document.getElementById('accountColorScreen').classList.remove('hidden');
                         document.getElementById('headerSubtitle').textContent = `Salon Vintage | Niv. 20`;
-
+                        triggerVisualEffect('flash');
                     } else {
                         msgDiv.textContent = data.message;
                     }
@@ -533,6 +636,7 @@
             });
 
             document.getElementById('guestBtn').addEventListener('click', function() {
+                initAudio();
                 currentUser = "Invité";
                 currentElo = 1200;
 
@@ -543,6 +647,7 @@
                 document.getElementById('authScreen').classList.add('hidden');
                 document.getElementById('setupScreen').classList.remove('hidden');
                 document.getElementById('headerSubtitle').textContent = `Mode Invité - Configuration`;
+                triggerVisualEffect('flash');
             });
 
             const accountColorButtons = document.querySelectorAll('#accountColorSelector .btn-option');
@@ -560,6 +665,7 @@
             });
 
             document.getElementById('leaderboardBtn').addEventListener('click', async function() {
+                initAudio();
                 try {
                     const res = await fetch('/api/leaderboard');
                     const data = await res.json();
@@ -649,6 +755,7 @@
             
             document.getElementById('headerSubtitle').textContent = `${currentUser} | Salon Vintage (Niv. ${currentSkillLevel})`;
             document.getElementById('logEntries').innerHTML = '';
+            triggerVisualEffect('flash');
 
             if (playerColor === 'black') {
                 triggerRobotTurn();
@@ -706,10 +813,14 @@
             if (outcome === 'win') {
                 eloChange = 25;
                 resultStr = 'win';
+                playSound('win');
+                triggerVisualEffect('flash');
                 alert("Exploit monumental, vous avez maté le maître ! (+25 Elo)");
             } else if (outcome === 'loss') {
                 eloChange = -10;
                 resultStr = 'loss';
+                playSound('loss');
+                triggerVisualEffect('shake');
                 alert("Le robot vintage vous a terrassé ! (-10 Elo)");
             } else {
                 alert("Partie nulle !");
@@ -777,6 +888,14 @@
                     return;
                 }
 
+                // Déclenchement son et visuel selon capture
+                if (moveObj.captured) {
+                    playSound('capture');
+                    triggerVisualEffect('shake');
+                } else {
+                    playSound('move');
+                }
+
                 game.move(moveStr, { sloppy: true });
                 logMoveToTacticalView(moveObj);
                 input.value = '';
@@ -810,6 +929,13 @@
                         let moveObj = tempGame.move(data.move, { sloppy: true });
                         
                         if (moveObj) {
+                            if (moveObj.captured) {
+                                playSound('capture');
+                                triggerVisualEffect('shake');
+                            } else {
+                                playSound('move');
+                            }
+
                             game.move(data.move, { sloppy: true });
                             logMoveToTacticalView(moveObj);
 
