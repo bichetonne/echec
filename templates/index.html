@@ -487,6 +487,14 @@
             }
         }
 
+        // Fonction pour adapter le niveau du robot au score Elo du compte
+        function getSkillLevelFromElo(elo) {
+            if (elo <= 900) return 6;     // Niveau adapté débutant
+            if (elo <= 1300) return 11;   // Niveau adapté moyen
+            if (elo <= 1700) return 16;   // Niveau pro
+            return 20;                    // Niveau maximum expert
+        }
+
         function playSound(type) {
             try {
                 initAudio();
@@ -609,6 +617,9 @@
                         currentUser = data.username || username;
                         currentElo = data.elo !== undefined ? data.elo : 1200;
 
+                        // LE ROBOT S'ADAPE AUTOMATIQUEMENT AU NIVEAU DU COMPTE
+                        currentSkillLevel = getSkillLevelFromElo(currentElo);
+
                         document.getElementById('displayUsername').textContent = currentUser;
                         const eloContainer = document.getElementById('eloDisplayContainer');
                         eloContainer.style.display = 'block';
@@ -616,10 +627,9 @@
                         document.getElementById('headerRightProfile').classList.add('active');
 
                         document.getElementById('authScreen').classList.add('hidden');
-                        currentSkillLevel = 20;
 
                         document.getElementById('accountColorScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Salon Vintage | Niv. 20`;
+                        document.getElementById('headerSubtitle').textContent = `Salon Vintage | Robot Niv. ${currentSkillLevel} (Adapté Elo ${currentElo})`;
                         triggerVisualEffect('flash');
                     } else {
                         msgDiv.textContent = data.message;
@@ -633,6 +643,7 @@
                 initAudio();
                 currentUser = "Invité";
                 currentElo = 1200;
+                currentSkillLevel = 20; // Invité par défaut sur le max
 
                 document.getElementById('displayUsername').textContent = currentUser;
                 document.getElementById('eloDisplayContainer').style.display = 'none';
@@ -868,6 +879,10 @@
             saveTrainingGame(resultStr);
             currentElo = Math.max(100, currentElo + eloChange);
             document.getElementById('displayElo').textContent = currentElo;
+            
+            // Mise à jour du niveau du robot pour la prochaine partie en fonction de la nouvelle progression Elo
+            currentSkillLevel = getSkillLevelFromElo(currentElo);
+
             updateDatabaseElo(currentElo);
             returnToMenu();
         }
