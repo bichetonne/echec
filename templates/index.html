@@ -369,15 +369,15 @@
             <button class="btn-back" id="backToAuthFromLeaderboardBtn">Retour</button>
         </div>
 
-        <!-- 3. ÉCRAN DE CONFIGURATION (Uniquement pour les invités) -->
+        <!-- 3. ÉCRAN DE CONFIGURATION (Invités uniquement) -->
         <div id="setupScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
                 <div class="section-title">1. Niveau de difficulté (1 à 20)</div>
                 <div class="slider-box">
-                    <input type="range" id="skillSlider" min="1" max="20" value="5" class="skill-slider">
+                    <input type="range" id="skillSlider" min="1" max="20" value="10" class="skill-slider">
                     <div class="slider-info">
                         <span>Niv. 1 (250 Elo)</span>
-                        <span id="sliderValueDisplay">Niveau 5 (1000 Elo)</span>
+                        <span id="sliderValueDisplay">Niveau 10 (1850 Elo)</span>
                         <span>Niv. 20 (3200 Elo)</span>
                     </div>
                 </div>
@@ -424,7 +424,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
     <script>
         let game = null;
-        let currentSkillLevel = 5;
+        let currentSkillLevel = 10;
         let playerColor = 'white';
         let isLoginMode = true;
         let currentUser = null;
@@ -441,6 +441,17 @@
         const pieceNamesFr = { 'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi' };
         const whiteSymbols = { 'p': '♙', 'n': '♘', 'b': '♗', 'r': '♖', 'q': '♕', 'k': '♔' };
         const blackSymbols = { 'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
+
+        // Fonction pour adapter automatiquement le niveau du robot (1 à 20) selon l'Elo du joueur
+        function getSkillLevelFromElo(elo) {
+            if (elo <= 600) return 3;
+            if (elo <= 850) return 6;
+            if (elo <= 1100) return 9;
+            if (elo <= 1400) return 12;
+            if (elo <= 1700) return 15;
+            if (elo <= 2000) return 18;
+            return 20; // Niveau maximal pour les grands pros
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             const authSwitchText = document.getElementById('authSwitchText');
@@ -495,8 +506,6 @@
                         currentElo = data.elo !== undefined ? data.elo : 1200;
 
                         document.getElementById('displayUsername').textContent = currentUser;
-                        
-                        // Affichage du profil dans l'en-tête (Pas d'Elo pour les invités, mais affiché pour les comptes)
                         const eloContainer = document.getElementById('eloDisplayContainer');
                         eloContainer.style.display = 'block';
                         document.getElementById('displayElo').textContent = currentElo;
@@ -504,11 +513,8 @@
 
                         document.getElementById('authScreen').classList.add('hidden');
 
-                        // Pour les inscrits/connectés : on ne passe plus par le choix 1-20, la partie se lance directement !
-                        // On associe un niveau de robot selon l'Elo du compte (ex: Débutant=4, Moyen=8, Pro=14)
-                        if (currentElo <= 900) currentSkillLevel = 4;
-                        else if (currentElo <= 1300) currentSkillLevel = 8;
-                        else currentSkillLevel = 14;
+                        // Le niveau du robot s'adapte automatiquement à l'Elo du compte
+                        currentSkillLevel = getSkillLevelFromElo(currentElo);
 
                         playerColor = 'white';
                         document.getElementById('headerSubtitle').textContent = `Connecté | Robot Niv. ${currentSkillLevel}`;
@@ -522,13 +528,11 @@
                 }
             });
 
-            // Bouton Invité : Eux ont accès à la configuration de 1 à 20
             document.getElementById('guestBtn').addEventListener('click', function() {
                 currentUser = "Invité";
                 currentElo = 1200;
 
                 document.getElementById('displayUsername').textContent = currentUser;
-                // Masquer l'Elo pour le mode invité
                 document.getElementById('eloDisplayContainer').style.display = 'none';
                 document.getElementById('headerRightProfile').classList.add('active');
 
@@ -643,11 +647,39 @@
             }
         }
 
+        // Détermine si le joueur a gagné ou perdu au moment du mat
+        function evaluateGameOutcome() {
+            if (game.in_checkmate()) {
+                const playerIsWhite = (playerColor === 'white');
+                const aiTurn = game.turn(); // 'w' ou 'b'
+                // Si c'est au tour de l'IA de jouer et qu'il y a mat, l'IA a perdu -> Le joueur a gagné !
+                const playerWon = (playerIsWhite && aiTurn === 'b') || (!playerIsWhite && aiTurn === 'w');
+                return playerWon ? 'win' : 'loss';
+            }
+            return 'draw';
+        }
+
         function handleGameOver() {
-            if (currentUser === "Invité") return; // Pas d'Elo pour les invités
-            let eloChange = 15; 
-            currentElo += eloChange;
+            if (currentUser === "Invité") return;
+
+            const outcome = evaluateGameOutcome();
+            let eloChange = 0;
+
+            if (outcome === 'win') {
+                eloChange = 15;
+                alert("Félicitations, vous avez gagné ! (+15 Elo)");
+            } else if (outcome === 'loss') {
+                eloChange = -15;
+                alert("Dommage, vous avez perdu. (-15 Elo)");
+            } else {
+                alert("Partie nulle !");
+            }
+
+            currentElo = Math.max(100, currentElo + eloChange);
             document.getElementById('displayElo').textContent = currentElo;
+            
+            // Met à jour le niveau du robot dynamiquement selon le nouveau score Elo
+            currentSkillLevel = getSkillLevelFromElo(currentElo);
             updateDatabaseElo(currentElo);
         }
 
@@ -712,7 +744,6 @@
                 input.value = '';
 
                 if (game.game_over()) {
-                    alert(`Partie terminée !`);
                     handleGameOver();
                     return;
                 }
@@ -734,7 +765,6 @@
                     logMoveToTacticalView(chosenMoveObj);
 
                     if (game.game_over()) {
-                        alert(`Partie terminée !`);
                         handleGameOver();
                     }
                 }
