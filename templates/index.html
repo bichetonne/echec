@@ -445,7 +445,6 @@
                 </div>
             </div>
 
-            <!-- BOUTONS D'ACTION : PROPOSER NULLE & ABANDONNER -->
             <div class="game-actions">
                 <button class="btn-action" id="drawBtn">🤝 Proposer nulle</button>
                 <button class="btn-action" id="resignBtn" style="color: #e67373; border-color: #8c3232;">🏳️ Abandonner</button>
@@ -705,14 +704,12 @@
                 }
             });
 
-            // Bouton Abandonner
             document.getElementById('resignBtn').addEventListener('click', function() {
                 if (confirm("Êtes-vous sûr de vouloir abandonner cette partie ?")) {
                     resignGame();
                 }
             });
 
-            // Bouton Proposer Nulle
             document.getElementById('drawBtn').addEventListener('click', async function() {
                 if (!game) return;
                 try {
@@ -903,6 +900,9 @@
             if (moveObj.captured) {
                 actionText += ` (cap. ${pieceNamesFr[moveObj.captured] || 'pion'})`;
             }
+            if (moveObj.promotion) {
+                actionText += ` [Promo: ${pieceNamesFr[moveObj.promotion] || moveObj.promotion}]`;
+            }
 
             const content = `<span class="chess-symbol ${colorClass}">${symbol}</span>${actionText}`;
 
@@ -919,10 +919,26 @@
         function submitMove() {
             const input = document.getElementById('moveInput');
             if (!input) return;
-            const moveStr = input.value.trim().toLowerCase();
+            let moveStr = input.value.trim().toLowerCase();
             if (!moveStr || !game) return;
 
             try {
+                // Détection de promotion de pion (ex: e7e8)
+                let from = moveStr.substring(0, 2);
+                let to = moveStr.substring(2, 4);
+                let piece = game.get(from);
+                let isWhiteTurn = game.turn() === 'w';
+
+                if (piece && piece.type === 'p' && ((isWhiteTurn && to[1] === '8') || (!isWhiteTurn && to[1] === '1'))) {
+                    if (moveStr.length === 4) {
+                        let promo = prompt("Promotion de pion ! Choisissez votre pièce :\n- q : Dame (Reine)\n- r : Tour\n- b : Fou\n- n : Cavalier", "q");
+                        if (!promo || !['q', 'r', 'b', 'n'].includes(promo.toLowerCase())) {
+                            promo = 'q';
+                        }
+                        moveStr += promo.toLowerCase();
+                    }
+                }
+
                 let tempGameForHuman = new Chess(game.fen());
                 let moveObj = tempGameForHuman.move(moveStr, { sloppy: true });
                 
