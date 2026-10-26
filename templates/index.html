@@ -146,7 +146,7 @@
             background: linear-gradient(to bottom, #f3cf66, #d4af37);
         }
 
-        .btn-guest, .btn-leaderboard {
+        .btn-guest, .btn-leaderboard, .btn-back {
             width: 100%;
             padding: 12px;
             background: transparent;
@@ -158,9 +158,10 @@
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
+            text-align: center;
         }
 
-        .btn-guest:hover, .btn-leaderboard:hover {
+        .btn-guest:hover, .btn-leaderboard:hover, .btn-back:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
             background: rgba(212, 175, 55, 0.05);
@@ -273,7 +274,7 @@
             background-color: var(--log-panel-bg);
             border: 1px solid var(--log-border);
             border-radius: 8px;
-            height: 250px;
+            height: 220px;
             overflow-y: auto;
             font-family: 'Courier New', Courier, monospace;
             color: var(--log-text);
@@ -326,14 +327,13 @@
             </div>
         </header>
 
-        <!-- ÉCRAN DE CONNEXION / INSCRIPTION -->
+        <!-- 1. ÉCRAN DE CONNEXION / INSCRIPTION -->
         <div id="authScreen" style="display: flex; flex-direction: column; gap: 15px;">
             <div class="section-title" id="authTitle">Connexion à votre compte</div>
             <div class="form-group">
                 <input type="text" id="usernameInput" placeholder="Nom d'utilisateur">
                 <input type="password" id="passwordInput" placeholder="Mot de passe">
                 
-                <!-- Sélection du niveau affichée uniquement en mode inscription -->
                 <div id="registerOptionsContainer" class="hidden" style="display: flex; flex-direction: column; gap: 5px;">
                     <span style="font-size: 0.85rem; color: var(--text-muted);">Votre niveau de jeu :</span>
                     <div class="options-group" id="levelSelector">
@@ -351,7 +351,7 @@
             <div class="auth-switch" id="authSwitchText">Pas encore de compte ? <span>S'inscrire</span></div>
         </div>
 
-        <!-- ÉCRAN DU CLASSEMENT -->
+        <!-- 2. ÉCRAN DU CLASSEMENT -->
         <div id="leaderboardScreen" class="hidden" style="display: flex; flex-direction: column; gap: 15px;">
             <div class="section-title">🏆 Top 10 des Meilleurs Joueurs</div>
             <div style="max-height: 250px; overflow-y: auto;">
@@ -366,10 +366,10 @@
                     <tbody id="leaderboardBody"></tbody>
                 </table>
             </div>
-            <button class="btn-guest" id="backToAuthBtn">Retour</button>
+            <button class="btn-back" id="backToAuthFromLeaderboardBtn">Retour</button>
         </div>
 
-        <!-- ÉCRAN DE CONFIGURATION -->
+        <!-- 3. ÉCRAN DE CONFIGURATION -->
         <div id="setupScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
                 <div class="section-title">1. Niveau de difficulté</div>
@@ -392,9 +392,10 @@
             </div>
 
             <button class="btn-start" id="startBtn">Lancer la partie</button>
+            <button class="btn-back" id="backToAuthFromSetupBtn">Retour</button>
         </div>
 
-        <!-- ÉCRAN DE JEU -->
+        <!-- 4. ÉCRAN DE JEU -->
         <div id="gameScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
                 <div class="section-title">Entrer votre coup</div>
@@ -415,6 +416,8 @@
                     <div class="log-entries" id="logEntries"></div>
                 </div>
             </div>
+
+            <button class="btn-back" id="backToSetupFromGameBtn">Abandonner / Retour</button>
         </div>
     </div>
 
@@ -457,7 +460,6 @@
                 }
             });
 
-            // Gestion de la sélection du niveau à l'inscription
             const levelButtons = document.querySelectorAll('#levelSelector .btn-option');
             levelButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -520,6 +522,7 @@
                 document.getElementById('headerSubtitle').textContent = `Mode Invité - Configuration`;
             });
 
+            // Boutons Retour de chaque écran
             document.getElementById('leaderboardBtn').addEventListener('click', async function() {
                 try {
                     const res = await fetch('/api/leaderboard');
@@ -540,9 +543,24 @@
                 }
             });
 
-            document.getElementById('backToAuthBtn').addEventListener('click', function() {
+            document.getElementById('backToAuthFromLeaderboardBtn').addEventListener('click', function() {
                 document.getElementById('leaderboardScreen').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
+            });
+
+            document.getElementById('backToAuthFromSetupBtn').addEventListener('click', function() {
+                document.getElementById('setupScreen').classList.add('hidden');
+                document.getElementById('authScreen').classList.remove('hidden');
+                document.getElementById('headerRightProfile').classList.remove('active');
+                document.getElementById('headerSubtitle').textContent = "Portail d'authentification";
+            });
+
+            document.getElementById('backToSetupFromGameBtn').addEventListener('click', function() {
+                if (confirm("Voulez-vous vraiment quitter la partie en cours ?")) {
+                    document.getElementById('gameScreen').classList.add('hidden');
+                    document.getElementById('setupScreen').classList.remove('hidden');
+                    document.getElementById('headerSubtitle').textContent = "Configuration de la partie";
+                }
             });
 
             const slider = document.getElementById('skillSlider');
