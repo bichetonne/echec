@@ -420,7 +420,7 @@
             </div>
 
             <div>
-                <div class="section-title">Journal Tactique</div>
+                <div class="section-title">Journal Tactique (Robot en entraînement continu)</div>
                 <div class="log-box" id="logBox">
                     <div class="log-header">
                         <div>Tour</div>
@@ -438,7 +438,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
     <script>
         let game = null;
-        let currentSkillLevel = 20; // Niveau maximal par défaut (Stockfish impitoyable)
+        let currentSkillLevel = 20;
         let playerColor = 'white';
         let isLoginMode = true;
         let currentUser = null;
@@ -455,11 +455,6 @@
         const pieceNamesFr = { 'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi' };
         const whiteSymbols = { 'p': '♙', 'n': '♘', 'b': '♗', 'r': '♖', 'q': '♕', 'k': '♔' };
         const blackSymbols = { 'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
-
-        function getSkillLevelFromElo(elo) {
-            // Même pour les comptes, on pousse la difficulté au maximum (Niveau 20) pour qu'il soit redoutable
-            return 20;
-        }
 
         document.addEventListener('DOMContentLoaded', function() {
             const authSwitchText = document.getElementById('authSwitchText');
@@ -520,10 +515,10 @@
                         document.getElementById('headerRightProfile').classList.add('active');
 
                         document.getElementById('authScreen').classList.add('hidden');
-                        currentSkillLevel = 20; // Stockfish max pour pulvériser l'adversaire
+                        currentSkillLevel = 20;
 
                         document.getElementById('accountColorScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Choix de la couleur | Robot Niv. 20 (Max)`;
+                        document.getElementById('headerSubtitle').textContent = `Entraînement permanent | Niv. 20`;
 
                     } else {
                         msgDiv.textContent = data.message;
@@ -600,14 +595,14 @@
             });
 
             document.getElementById('backToSetupFromGameBtn').addEventListener('click', function() {
-                if (confirm("Voulez-vous vraiment quitter la partie en cours ?")) {
+                if (confirm("Voulez-vous vraiment quitter l'entraînement en cours ?")) {
                     document.getElementById('gameScreen').classList.add('hidden');
                     if (currentUser === "Invité") {
                         document.getElementById('setupScreen').classList.remove('hidden');
                         document.getElementById('headerSubtitle').textContent = "Mode Invité - Configuration";
                     } else {
                         document.getElementById('accountColorScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Choix de la couleur | Robot Niv. 20 (Max)`;
+                        document.getElementById('headerSubtitle').textContent = `Entraînement permanent | Niv. 20`;
                     }
                 }
             });
@@ -648,7 +643,7 @@
             document.getElementById('accountColorScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
             
-            document.getElementById('headerSubtitle').textContent = `${currentUser} | Robot Niv. ${currentSkillLevel} (Impitoyable)`;
+            document.getElementById('headerSubtitle').textContent = `${currentUser} | Entraînement Niv. ${currentSkillLevel}`;
             document.getElementById('logEntries').innerHTML = '';
 
             if (playerColor === 'black') {
@@ -669,6 +664,25 @@
             }
         }
 
+        // Enregistre la partie dans la base de données d'entraînement du robot
+        async function saveTrainingGame(result) {
+            if (currentUser === "Invité") return;
+            try {
+                const movesHistory = game.history().join(' ');
+                await fetch('/api/save_game', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: currentUser,
+                        result: result,
+                        moves: movesHistory
+                    })
+                });
+            } catch (err) {
+                console.error("Erreur d'enregistrement de l'entraînement:", err);
+            }
+        }
+
         function evaluateGameOutcome() {
             if (game.in_checkmate()) {
                 const playerIsWhite = (playerColor === 'white');
@@ -684,16 +698,22 @@
 
             const outcome = evaluateGameOutcome();
             let eloChange = 0;
+            let resultStr = 'draw';
 
             if (outcome === 'win') {
-                eloChange = 25; // Gagner contre Stockfish 20 rapporte gros !
+                eloChange = 25;
+                resultStr = 'win';
                 alert("Exploit monumental, vous avez battu le robot ! (+25 Elo)");
             } else if (outcome === 'loss') {
                 eloChange = -10;
-                alert("Le robot impitoyable vous a maté ! (-10 Elo)");
+                resultStr = 'loss';
+                alert("Le robot en entraînement continu vous a maté ! (-10 Elo)");
             } else {
-                alert("Partie nulle face au maître !");
+                alert("Partie nulle !");
             }
+
+            // Enregistre l'entraînement dans le cloud
+            saveTrainingGame(resultStr);
 
             currentElo = Math.max(100, currentElo + eloChange);
             document.getElementById('displayElo').textContent = currentElo;
@@ -772,7 +792,6 @@
             }
         }
 
-        // Appel du véritable moteur Stockfish sur le serveur Python
         async function triggerRobotTurn() {
             setTimeout(async () => {
                 if (!game || game.game_over()) return;

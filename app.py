@@ -29,6 +29,15 @@ def init_db():
             elo INTEGER DEFAULT 1200
         )
     ''')
+    # Table dédiée à l'entraînement permanent du robot
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS training_games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            result TEXT,
+            moves TEXT
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -110,12 +119,33 @@ def leaderboard():
     ranking = [{"username": u[0], "elo": u[1]} for u in users]
     return jsonify({"success": True, "leaderboard": ranking})
 
-# --- ROUTE DU ROBOT IMPITOYABLE (STOCKFISH) ---
+# --- ENREGISTREMENT DES ENTRAÎNEMENTS DU ROBOT ---
+@app.route('/api/save_game', methods=['POST'])
+def save_game():
+    data = request.json
+    username = data.get('username')
+    result = data.get('result')
+    moves = data.get('moves')
+
+    if not username:
+        return jsonify({"success": False}), 400
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO training_games (username, result, moves) VALUES (?, ?, ?)", (username, result, moves))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+# --- ROUTE DU ROBOT IMPITOYABLE (STOCKFISH NIV. 20) ---
 @app.route('/api/robot_move', methods=['POST'])
 def robot_move():
     data = request.json
     fen = data.get('fen')
-    skill_level = data.get('skill_level', 20)  # Niveau max par défaut pour un robot redoutable
+    skill_level = data.get('skill_level', 20)
 
     try:
         board = chess.Board(fen)
@@ -125,7 +155,6 @@ def robot_move():
         engine.quit()
         return jsonify({"success": True, "move": result.move.uci()})
     except Exception as e:
-        # Fallback de secours si Stockfish rencontre un souci
         return jsonify({"success": False, "message": str(e)}), 500
 
 if __name__ == '__main__':
