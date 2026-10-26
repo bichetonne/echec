@@ -2,3 +2,4 @@ flask
 python-chess
 gunicorn
 werkzeug
+libsql

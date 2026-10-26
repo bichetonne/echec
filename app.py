@@ -1,14 +1,25 @@
+import os
+import libsql
+import sqlite3
 from flask import Flask, render_template, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-import sqlite3
 import chess
 import chess.engine
 
 app = Flask(__name__)
 STOCKFISH_PATH = "stockfish"
 
+TURSO_URL = os.environ.get("TURSO_DATABASE_URL")
+TURSO_TOKEN = os.environ.get("TURSO_AUTH_TOKEN")
+
+def get_db():
+    if TURSO_URL:
+        return libsql.connect(database=TURSO_URL, auth_token=TURSO_TOKEN)
+    else:
+        return sqlite3.connect('biche_chess.db')
+
 def init_db():
-    conn = sqlite3.connect('biche_chess.db')
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
@@ -37,24 +48,22 @@ def register():
     if not username or not password:
         return jsonify({"success": False, "message": "Nom d'utilisateur et mot de passe requis."}), 400
 
-    # Attribution de l'Elo initial selon le niveau choisi
     elo_map = {
         'debutant': 800,
         'moyen': 1200,
         'pro': 1600
     }
     initial_elo = elo_map.get(level, 1200)
-
     hashed_password = generate_password_hash(password)
 
     try:
-        conn = sqlite3.connect('biche_chess.db')
+        conn = get_db()
         cursor = conn.cursor()
         cursor.execute("INSERT INTO users (username, password, elo) VALUES (?, ?, ?)", (username, hashed_password, initial_elo))
         conn.commit()
         conn.close()
         return jsonify({"success": True, "message": "Compte créé avec succès !", "elo": initial_elo})
-    except sqlite3.IntegrityError:
+    except Exception:
         return jsonify({"success": False, "message": "Ce nom d'utilisateur existe déjà."}), 400
 
 @app.route('/api/login', methods=['POST'])
@@ -63,7 +72,7 @@ def login():
     username = data.get('username', '').strip().lower()
     password = data.get('password', '').strip()
 
-    conn = sqlite3.connect('biche_chess.db')
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT id, password, elo FROM users WHERE username = ?", (username,))
     user = cursor.fetchone()
@@ -83,7 +92,7 @@ def update_elo():
     if not username or new_elo is None:
         return jsonify({"success": False, "message": "Données invalides."}), 400
 
-    conn = sqlite3.connect('biche_chess.db')
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("UPDATE users SET elo = ? WHERE username = ?", (new_elo, username))
     conn.commit()
@@ -92,7 +101,7 @@ def update_elo():
 
 @app.route('/api/leaderboard', methods=['GET'])
 def leaderboard():
-    conn = sqlite3.connect('biche_chess.db')
+    conn = get_db()
     cursor = conn.cursor()
     cursor.execute("SELECT username, elo FROM users ORDER BY elo DESC LIMIT 10")
     users = cursor.fetchall()
