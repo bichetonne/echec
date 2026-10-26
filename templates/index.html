@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>biche_chess</title>
+    <title>biche_chess - Bois Vintage</title>
     <style>
         :root {
-            --bg-color: #16120e;
-            --panel-bg: #231c15;
-            --panel-border: #4a3826;
-            --accent-color: #d4af37;
-            --accent-hover: #e5c158;
-            --text-color: #f0e6d2;
-            --text-muted: #a39580;
-            --input-bg: #120e0a;
+            /* --- THÈME BOIS VINTAGE --- */
+            --bg-color: #1a110a;          /* Fond bois très sombre et chaleureux */
+            --panel-bg: #322115;          /* Panneau couleur bois noyer / acajou */
+            --panel-border: #5c3a21;      /* Bordure bois sculpté */
+            --accent-color: #d49b2b;      /* Or vieilli / laiton */
+            --accent-hover: #e6b347;
+            --text-color: #f5eedc;        /* Parchemin / Ivoire clair */
+            --text-muted: #b8a68d;        /* Bois vieilli clair */
+            --input-bg: #21150c;          /* Fond de champ sombre texturé */
             
-            --log-panel-bg: rgba(35, 28, 21, 0.85);
-            --log-border: rgba(74, 56, 38, 0.7);
-            --log-text: #d1c7b7;
-            --log-highlight: rgba(212, 175, 55, 0.1);
+            --log-panel-bg: rgba(50, 33, 21, 0.92);
+            --log-border: rgba(92, 58, 33, 0.8);
+            --log-text: #e6dac3;
+            --log-highlight: rgba(212, 155, 43, 0.12);
         }
 
         * {
@@ -37,14 +38,14 @@
             align-items: center;
             justify-content: center;
             padding: 15px;
-            background-image: radial-gradient(circle at center, #231c15 0%, #16120e 100%);
+            background-image: radial-gradient(circle at center, #3a2517 0%, #1a110a 100%);
         }
 
         .main-container {
             background: var(--panel-bg);
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 0 1px var(--panel-border);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 2px var(--panel-border);
             width: 100%;
             max-width: 680px;
             display: flex;
@@ -69,6 +70,7 @@
             font-size: 1.6rem;
             margin-bottom: 3px;
             text-transform: lowercase;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
 
         .header-left p {
@@ -125,31 +127,32 @@
 
         input[type="text"]:focus, input[type="password"]:focus { 
             border-color: var(--accent-color); 
-            box-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 0 6px rgba(212, 155, 43, 0.4);
         }
 
         .btn-start, .btn-auth {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(to bottom, #e5c158, #c59b27);
-            color: #16120e;
-            border: none;
+            background: linear-gradient(to bottom, #d49b2b, #9e6c1a);
+            color: #1a110a;
+            border: 1px solid #754c0e;
             border-radius: 8px;
             font-weight: bold;
             font-size: 1.05rem;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         .btn-start:hover, .btn-auth:hover {
-            background: linear-gradient(to bottom, #f3cf66, #d4af37);
+            background: linear-gradient(to bottom, #e6b347, #b87d21);
         }
 
         .btn-guest, .btn-leaderboard, .btn-back {
             width: 100%;
             padding: 12px;
-            background: transparent;
+            background: rgba(33, 21, 12, 0.6);
             border: 1px solid var(--panel-border);
             color: var(--text-color);
             border-radius: 8px;
@@ -164,7 +167,7 @@
         .btn-guest:hover, .btn-leaderboard:hover, .btn-back:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
-            background: rgba(212, 175, 55, 0.05);
+            background: rgba(212, 155, 43, 0.08);
         }
 
         .auth-switch {
@@ -188,7 +191,7 @@
             flex: 1;
             padding: 10px 8px;
             border: 1px solid var(--panel-border);
-            background: #2d241c;
+            background: #25170e;
             color: var(--text-color);
             border-radius: 8px;
             cursor: pointer;
@@ -199,7 +202,7 @@
 
         .btn-option.active {
             border-color: var(--accent-color);
-            background: rgba(212, 175, 55, 0.15);
+            background: rgba(212, 155, 43, 0.2);
             color: var(--accent-color);
         }
 
@@ -220,7 +223,7 @@
             color: var(--accent-color);
             text-transform: uppercase;
             font-size: 0.8rem;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.4);
         }
 
         .slider-box {
@@ -236,7 +239,7 @@
         .skill-slider {
             width: 100%;
             -webkit-appearance: none;
-            background: #16120e;
+            background: #1a110a;
             height: 8px;
             border-radius: 4px;
             border: 1px solid var(--panel-border);
@@ -250,6 +253,7 @@
             border-radius: 50%;
             background: var(--accent-color);
             cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .slider-info {
@@ -286,7 +290,7 @@
             display: grid;
             grid-template-columns: 50px 1fr 1fr;
             padding: 8px 10px;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.5);
             border-bottom: 1px solid var(--log-border);
             font-weight: bold;
             color: var(--accent-color);
@@ -299,18 +303,18 @@
             display: grid;
             grid-template-columns: 50px 1fr 1fr;
             padding: 6px 10px;
-            border-bottom: 1px solid rgba(74, 56, 38, 0.2);
+            border-bottom: 1px solid rgba(92, 58, 33, 0.3);
             font-size: 0.9rem;
             align-items: center;
         }
         .log-entry:nth-child(even) { background-color: var(--log-highlight); }
         .log-move-num { color: var(--text-muted); text-align: center; font-weight: bold; }
         .chess-symbol { font-size: 1.2rem; margin-right: 6px; vertical-align: middle; }
-        .piece-white { color: #e5c158; }
-        .piece-black { color: #c59b27; }
+        .piece-white { color: #f5eedc; text-shadow: 0 0 2px #d49b2b; }
+        .piece-black { color: #d49b2b; }
 
         .hidden { display: none !important; }
-        #authMsg { color: #e5c158; font-size: 0.85rem; text-align: center; min-height: 20px; }
+        #authMsg { color: #e6b347; font-size: 0.85rem; text-align: center; min-height: 20px; }
     </style>
 </head>
 <body>
@@ -319,7 +323,7 @@
         <header>
             <div class="header-left">
                 <h1>♟️ biche_chess</h1>
-                <p id="headerSubtitle">Portail d'authentification</p>
+                <p id="headerSubtitle">Salon d'échecs vintage</p>
             </div>
             <div class="header-right" id="headerRightProfile">
                 <div class="user-tag" id="displayUsername">Utilisateur</div>
@@ -329,7 +333,7 @@
 
         <!-- 1. ÉCRAN DE CONNEXION / INSCRIPTION -->
         <div id="authScreen" style="display: flex; flex-direction: column; gap: 15px;">
-            <div class="section-title" id="authTitle">Connexion à votre compte</div>
+            <div class="section-title" id="authTitle">Connexion au salon</div>
             <div class="form-group">
                 <input type="text" id="usernameInput" placeholder="Nom d'utilisateur">
                 <input type="password" id="passwordInput" placeholder="Mot de passe">
@@ -420,7 +424,7 @@
             </div>
 
             <div>
-                <div class="section-title">Journal Tactique (Robot en entraînement continu)</div>
+                <div class="section-title">Journal Tactique (Entraînement en cours)</div>
                 <div class="log-box" id="logBox">
                     <div class="log-header">
                         <div>Tour</div>
@@ -462,7 +466,7 @@
 
             authSwitchText.addEventListener('click', function() {
                 isLoginMode = !isLoginMode;
-                document.getElementById('authTitle').textContent = isLoginMode ? "Connexion à votre compte" : "Créer un nouveau compte";
+                document.getElementById('authTitle').textContent = isLoginMode ? "Connexion au salon" : "Créer un nouveau compte";
                 document.getElementById('authBtn').textContent = isLoginMode ? "Se connecter" : "S'inscrire";
                 authSwitchText.innerHTML = isLoginMode ? "Pas encore de compte ? <span>S'inscrire</span>" : "Déjà un compte ? <span>Se connecter</span>";
                 document.getElementById('authMsg').textContent = "";
@@ -518,7 +522,7 @@
                         currentSkillLevel = 20;
 
                         document.getElementById('accountColorScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Entraînement permanent | Niv. 20`;
+                        document.getElementById('headerSubtitle').textContent = `Salon Vintage | Niv. 20`;
 
                     } else {
                         msgDiv.textContent = data.message;
@@ -584,25 +588,25 @@
                 document.getElementById('setupScreen').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
                 document.getElementById('headerRightProfile').classList.remove('active');
-                document.getElementById('headerSubtitle').textContent = "Portail d'authentification";
+                document.getElementById('headerSubtitle').textContent = "Salon d'échecs vintage";
             });
 
             document.getElementById('backToAuthFromAccountColorBtn').addEventListener('click', function() {
                 document.getElementById('accountColorScreen').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
                 document.getElementById('headerRightProfile').classList.remove('active');
-                document.getElementById('headerSubtitle').textContent = "Portail d'authentification";
+                document.getElementById('headerSubtitle').textContent = "Salon d'échecs vintage";
             });
 
             document.getElementById('backToSetupFromGameBtn').addEventListener('click', function() {
-                if (confirm("Voulez-vous vraiment quitter l'entraînement en cours ?")) {
+                if (confirm("Voulez-vous vraiment quitter la partie en cours ?")) {
                     document.getElementById('gameScreen').classList.add('hidden');
                     if (currentUser === "Invité") {
                         document.getElementById('setupScreen').classList.remove('hidden');
                         document.getElementById('headerSubtitle').textContent = "Mode Invité - Configuration";
                     } else {
                         document.getElementById('accountColorScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Entraînement permanent | Niv. 20`;
+                        document.getElementById('headerSubtitle').textContent = `Salon Vintage | Niv. 20`;
                     }
                 }
             });
@@ -643,7 +647,7 @@
             document.getElementById('accountColorScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
             
-            document.getElementById('headerSubtitle').textContent = `${currentUser} | Entraînement Niv. ${currentSkillLevel}`;
+            document.getElementById('headerSubtitle').textContent = `${currentUser} | Salon Vintage (Niv. ${currentSkillLevel})`;
             document.getElementById('logEntries').innerHTML = '';
 
             if (playerColor === 'black') {
@@ -664,7 +668,6 @@
             }
         }
 
-        // Enregistre la partie dans la base de données d'entraînement du robot
         async function saveTrainingGame(result) {
             if (currentUser === "Invité") return;
             try {
@@ -679,7 +682,7 @@
                     })
                 });
             } catch (err) {
-                console.error("Erreur d'enregistrement de l'entraînement:", err);
+                console.error("Erreur d'enregistrement:", err);
             }
         }
 
@@ -703,18 +706,16 @@
             if (outcome === 'win') {
                 eloChange = 25;
                 resultStr = 'win';
-                alert("Exploit monumental, vous avez battu le robot ! (+25 Elo)");
+                alert("Exploit monumental, vous avez maté le maître ! (+25 Elo)");
             } else if (outcome === 'loss') {
                 eloChange = -10;
                 resultStr = 'loss';
-                alert("Le robot en entraînement continu vous a maté ! (-10 Elo)");
+                alert("Le robot vintage vous a terrassé ! (-10 Elo)");
             } else {
                 alert("Partie nulle !");
             }
 
-            // Enregistre l'entraînement dans le cloud
             saveTrainingGame(resultStr);
-
             currentElo = Math.max(100, currentElo + eloChange);
             document.getElementById('displayElo').textContent = currentElo;
             updateDatabaseElo(currentElo);
