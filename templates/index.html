@@ -146,6 +146,26 @@
             background: linear-gradient(to bottom, #f3cf66, #d4af37);
         }
 
+        .btn-guest {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--panel-border);
+            color: var(--text-color);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-guest:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background: rgba(212, 175, 55, 0.05);
+        }
+
         .auth-switch {
             text-align: center;
             font-size: 0.85rem;
@@ -294,6 +314,7 @@
                 <input type="password" id="passwordInput" placeholder="Mot de passe">
                 <div id="authMsg"></div>
                 <button class="btn-auth" id="authBtn">Se connecter</button>
+                <button class="btn-guest" id="guestBtn">Jouer en invité</button>
             </div>
             <div class="auth-switch" id="authSwitchText">Pas encore de compte ? <span>S'inscrire</span></div>
         </div>
@@ -377,6 +398,7 @@
                 document.getElementById('authMsg').textContent = "";
             });
 
+            // Bouton Connexion / Inscription
             document.getElementById('authBtn').addEventListener('click', async function() {
                 const username = document.getElementById('usernameInput').value.trim();
                 const password = document.getElementById('passwordInput').value.trim();
@@ -401,7 +423,6 @@
                         currentUser = data.username || username;
                         currentElo = data.elo !== undefined ? data.elo : 1200;
 
-                        // Mettre à jour l'affichage en haut à droite
                         document.getElementById('displayUsername').textContent = currentUser;
                         document.getElementById('displayElo').textContent = currentElo;
                         document.getElementById('headerRightProfile').classList.add('active');
@@ -415,6 +436,20 @@
                 } catch (err) {
                     msgDiv.textContent = "Erreur de connexion au serveur.";
                 }
+            });
+
+            // Bouton Jouer en Invité
+            document.getElementById('guestBtn').addEventListener('click', function() {
+                currentUser = "Invité";
+                currentElo = 1200;
+
+                document.getElementById('displayUsername').textContent = currentUser;
+                document.getElementById('displayElo').textContent = currentElo;
+                document.getElementById('headerRightProfile').classList.add('active');
+
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('setupScreen').classList.remove('hidden');
+                document.getElementById('headerSubtitle').textContent = `Mode Invité - Configuration`;
             });
 
             const slider = document.getElementById('skillSlider');
@@ -461,6 +496,7 @@
         }
 
         async function updateDatabaseElo(newElo) {
+            if (currentUser === "Invité") return; // Les invités n'enregistrent pas en base de données
             try {
                 await fetch('/api/update_elo', {
                     method: 'POST',
@@ -473,10 +509,7 @@
         }
 
         function handleGameOver() {
-            // Exemple simple : si la partie s'arrête, on simule un gain ou une perte d'Elo
-            // (Ici selon si c'est mat ou autre, ou on peut l'adapter selon le résultat réel)
-            let eloChange = 15; // Gagné
-            // Si vous voulez gérer la défaite, vous pouvez ajuster selon le cas
+            let eloChange = 15; 
             currentElo += eloChange;
             document.getElementById('displayElo').textContent = currentElo;
             updateDatabaseElo(currentElo);
