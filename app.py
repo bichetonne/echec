@@ -1,4 +1,5 @@
 import os
+import random
 import libsql
 import sqlite3
 from flask import Flask, render_template, request, jsonify
@@ -29,7 +30,6 @@ def init_db():
             elo INTEGER DEFAULT 1200
         )
     ''')
-    # Table dédiée à l'entraînement permanent du robot
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS training_games (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -119,7 +119,6 @@ def leaderboard():
     ranking = [{"username": u[0], "elo": u[1]} for u in users]
     return jsonify({"success": True, "leaderboard": ranking})
 
-# --- ENREGISTREMENT DES ENTRAÎNEMENTS DU ROBOT ---
 @app.route('/api/save_game', methods=['POST'])
 def save_game():
     data = request.json
@@ -140,22 +139,29 @@ def save_game():
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-# --- ROUTE DU ROBOT IMPITOYABLE (STOCKFISH NIV. 20) ---
+# --- ROUTE DU ROBOT AVEC SÉCURITÉ DE SECOURS ---
 @app.route('/api/robot_move', methods=['POST'])
 def robot_move():
     data = request.json
     fen = data.get('fen')
     skill_level = data.get('skill_level', 20)
 
+    board = chess.Board(fen)
+
     try:
-        board = chess.Board(fen)
+        # Tente d'utiliser Stockfish
         transport, engine = chess.engine.popen_uci(STOCKFISH_PATH)
         engine.configure({"Skill Level": skill_level})
-        result = engine.play(board, chess.engine.Limit(time=0.6))
+        result = engine.play(board, chess.engine.Limit(time=0.5))
         engine.quit()
         return jsonify({"success": True, "move": result.move.uci()})
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+    except Exception:
+        # MODE DE SECOURS : Si Stockfish échoue (ex: absent sur le cloud), python-chess joue un coup légal automatiquement
+        legal_moves = list(board.legal_moves)
+        if legal_moves:
+            chosen_move = random.choice(legal_moves)
+            return jsonify({"success": True, "move": chosen_move.uci()})
+        return jsonify({"success": False, "message": "Aucun coup disponible"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
