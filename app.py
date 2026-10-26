@@ -110,5 +110,23 @@ def leaderboard():
     ranking = [{"username": u[0], "elo": u[1]} for u in users]
     return jsonify({"success": True, "leaderboard": ranking})
 
+# --- ROUTE DU ROBOT IMPITOYABLE (STOCKFISH) ---
+@app.route('/api/robot_move', methods=['POST'])
+def robot_move():
+    data = request.json
+    fen = data.get('fen')
+    skill_level = data.get('skill_level', 20)  # Niveau max par défaut pour un robot redoutable
+
+    try:
+        board = chess.Board(fen)
+        transport, engine = chess.engine.popen_uci(STOCKFISH_PATH)
+        engine.configure({"Skill Level": skill_level})
+        result = engine.play(board, chess.engine.Limit(time=0.6))
+        engine.quit()
+        return jsonify({"success": True, "move": result.move.uci()})
+    except Exception as e:
+        # Fallback de secours si Stockfish rencontre un souci
+        return jsonify({"success": False, "message": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

@@ -369,16 +369,16 @@
             <button class="btn-back" id="backToAuthFromLeaderboardBtn">Retour</button>
         </div>
 
-        <!-- 3. ÉCRAN DE CONFIGURATION (Invités uniquement) -->
+        <!-- 3. ÉCRAN DE CONFIGURATION (Invités) -->
         <div id="setupScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
-                <div class="section-title">1. Niveau de difficulté (1 à 20)</div>
+                <div class="section-title">1. Niveau de difficulté Stockfish (1 à 20)</div>
                 <div class="slider-box">
-                    <input type="range" id="skillSlider" min="1" max="20" value="10" class="skill-slider">
+                    <input type="range" id="skillSlider" min="1" max="20" value="20" class="skill-slider">
                     <div class="slider-info">
-                        <span>Niv. 1 (250 Elo)</span>
-                        <span id="sliderValueDisplay">Niveau 10 (1850 Elo)</span>
-                        <span>Niv. 20 (3200 Elo)</span>
+                        <span>Niv. 1 (Facile)</span>
+                        <span id="sliderValueDisplay">Niveau 20 (Max Stockfish)</span>
+                        <span>Niv. 20 (Impitoyable)</span>
                     </div>
                 </div>
             </div>
@@ -395,7 +395,7 @@
             <button class="btn-back" id="backToAuthFromSetupBtn">Retour</button>
         </div>
 
-        <!-- 3-BIS. ÉCRAN DE CHOIX DE COULEUR (Comptes connectés uniquement) -->
+        <!-- 3-BIS. ÉCRAN DE CHOIX DE COULEUR (Comptes connectés) -->
         <div id="accountColorScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
                 <div class="section-title">Choisissez votre couleur</div>
@@ -438,7 +438,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chess.js@0.10.3/chess.min.js"></script>
     <script>
         let game = null;
-        let currentSkillLevel = 10;
+        let currentSkillLevel = 20; // Niveau maximal par défaut (Stockfish impitoyable)
         let playerColor = 'white';
         let isLoginMode = true;
         let currentUser = null;
@@ -449,7 +449,7 @@
             1: "250 Elo", 2: "400 Elo", 3: "600 Elo", 4: "800 Elo", 5: "1000 Elo",
             6: "1200 Elo", 7: "1400 Elo", 8: "1550 Elo", 9: "1700 Elo", 10: "1850 Elo",
             11: "2000 Elo", 12: "2150 Elo", 13: "2300 Elo", 14: "2450 Elo", 15: "2600 Elo",
-            16: "2750 Elo", 17: "2850 Elo", 18: "2950 Elo", 19: "3050 Elo", 20: "3200 Elo (Max)"
+            16: "2750 Elo", 17: "2850 Elo", 18: "2950 Elo", 19: "3050 Elo", 20: "3200 Elo (Max Impitoyable)"
         };
 
         const pieceNamesFr = { 'p': 'Pion', 'n': 'Cavalier', 'b': 'Fou', 'r': 'Tour', 'q': 'Dame', 'k': 'Roi' };
@@ -457,12 +457,7 @@
         const blackSymbols = { 'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
 
         function getSkillLevelFromElo(elo) {
-            if (elo <= 600) return 3;
-            if (elo <= 850) return 6;
-            if (elo <= 1100) return 9;
-            if (elo <= 1400) return 12;
-            if (elo <= 1700) return 15;
-            if (elo <= 2000) return 18;
+            // Même pour les comptes, on pousse la difficulté au maximum (Niveau 20) pour qu'il soit redoutable
             return 20;
         }
 
@@ -493,7 +488,6 @@
                 });
             });
 
-            // Bouton de connexion / inscription -> Dirige vers le choix de couleur pour les comptes
             document.getElementById('authBtn').addEventListener('click', async function() {
                 const username = document.getElementById('usernameInput').value.trim();
                 const password = document.getElementById('passwordInput').value.trim();
@@ -526,13 +520,10 @@
                         document.getElementById('headerRightProfile').classList.add('active');
 
                         document.getElementById('authScreen').classList.add('hidden');
+                        currentSkillLevel = 20; // Stockfish max pour pulvériser l'adversaire
 
-                        // Détermine le niveau du robot selon l'Elo
-                        currentSkillLevel = getSkillLevelFromElo(currentElo);
-
-                        // Affiche l'écran de choix de couleur pour les comptes
                         document.getElementById('accountColorScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Choix de la couleur | Robot Niv. ${currentSkillLevel}`;
+                        document.getElementById('headerSubtitle').textContent = `Choix de la couleur | Robot Niv. 20 (Max)`;
 
                     } else {
                         msgDiv.textContent = data.message;
@@ -542,7 +533,6 @@
                 }
             });
 
-            // Bouton Mode Invité -> Accède à la configuration complète (1 à 20)
             document.getElementById('guestBtn').addEventListener('click', function() {
                 currentUser = "Invité";
                 currentElo = 1200;
@@ -556,7 +546,6 @@
                 document.getElementById('headerSubtitle').textContent = `Mode Invité - Configuration`;
             });
 
-            // Sélection de couleur pour les comptes connectés
             const accountColorButtons = document.querySelectorAll('#accountColorSelector .btn-option');
             accountColorButtons.forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -566,7 +555,6 @@
                 });
             });
 
-            // Lancement de la partie depuis l'écran de couleur des comptes
             document.getElementById('accountStartBtn').addEventListener('click', function() {
                 document.getElementById('accountColorScreen').classList.add('hidden');
                 startNewGame();
@@ -619,7 +607,7 @@
                         document.getElementById('headerSubtitle').textContent = "Mode Invité - Configuration";
                     } else {
                         document.getElementById('accountColorScreen').classList.remove('hidden');
-                        document.getElementById('headerSubtitle').textContent = `Choix de la couleur | Robot Niv. ${currentSkillLevel}`;
+                        document.getElementById('headerSubtitle').textContent = `Choix de la couleur | Robot Niv. 20 (Max)`;
                     }
                 }
             });
@@ -660,11 +648,7 @@
             document.getElementById('accountColorScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
             
-            if (currentUser !== "Invité") {
-                document.getElementById('headerSubtitle').textContent = `${currentUser} | Robot Niv. ${currentSkillLevel}`;
-            } else {
-                document.getElementById('headerSubtitle').textContent = `Invité | Niv. ${currentSkillLevel} (${chessComEloMap[currentSkillLevel]})`;
-            }
+            document.getElementById('headerSubtitle').textContent = `${currentUser} | Robot Niv. ${currentSkillLevel} (Impitoyable)`;
             document.getElementById('logEntries').innerHTML = '';
 
             if (playerColor === 'black') {
@@ -702,18 +686,17 @@
             let eloChange = 0;
 
             if (outcome === 'win') {
-                eloChange = 15;
-                alert("Félicitations, vous avez gagné ! (+15 Elo)");
+                eloChange = 25; // Gagner contre Stockfish 20 rapporte gros !
+                alert("Exploit monumental, vous avez battu le robot ! (+25 Elo)");
             } else if (outcome === 'loss') {
-                eloChange = -15;
-                alert("Dommage, vous avez perdu. (-15 Elo)");
+                eloChange = -10;
+                alert("Le robot impitoyable vous a maté ! (-10 Elo)");
             } else {
-                alert("Partie nulle !");
+                alert("Partie nulle face au maître !");
             }
 
             currentElo = Math.max(100, currentElo + eloChange);
             document.getElementById('displayElo').textContent = currentElo;
-            currentSkillLevel = getSkillLevelFromElo(currentElo);
             updateDatabaseElo(currentElo);
         }
 
@@ -789,20 +772,36 @@
             }
         }
 
-        function triggerRobotTurn() {
-            setTimeout(() => {
-                if (!game) return;
-                const possibleMoves = game.moves({ verbose: true });
-                if (possibleMoves.length > 0) {
-                    let chosenMoveObj = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                    game.move(chosenMoveObj);
-                    logMoveToTacticalView(chosenMoveObj);
+        // Appel du véritable moteur Stockfish sur le serveur Python
+        async function triggerRobotTurn() {
+            setTimeout(async () => {
+                if (!game || game.game_over()) return;
 
-                    if (game.game_over()) {
-                        handleGameOver();
+                try {
+                    const response = await fetch('/api/robot_move', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fen: game.fen(), skill_level: currentSkillLevel })
+                    });
+                    const data = await response.json();
+
+                    if (data.success && data.move) {
+                        let tempGame = new Chess(game.fen());
+                        let moveObj = tempGame.move(data.move, { sloppy: true });
+                        
+                        if (moveObj) {
+                            game.move(data.move, { sloppy: true });
+                            logMoveToTacticalView(moveObj);
+
+                            if (game.game_over()) {
+                                handleGameOver();
+                            }
+                        }
                     }
+                } catch (err) {
+                    console.error("Erreur de calcul du robot:", err);
                 }
-            }, 600);
+            }, 400);
         }
     </script>
 </body>
