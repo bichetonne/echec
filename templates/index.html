@@ -146,7 +146,7 @@
             background: linear-gradient(to bottom, #f3cf66, #d4af37);
         }
 
-        .btn-guest {
+        .btn-guest, .btn-leaderboard {
             width: 100%;
             padding: 12px;
             background: transparent;
@@ -160,7 +160,7 @@
             text-transform: uppercase;
         }
 
-        .btn-guest:hover {
+        .btn-guest:hover, .btn-leaderboard:hover {
             border-color: var(--accent-color);
             color: var(--accent-color);
             background: rgba(212, 175, 55, 0.05);
@@ -176,6 +176,27 @@
         .auth-switch span {
             color: var(--accent-color);
             text-decoration: underline;
+        }
+
+        /* Styles du tableau des scores */
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .leaderboard-table th {
+            color: var(--accent-color);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            background: rgba(0,0,0,0.3);
         }
 
         .slider-box {
@@ -315,8 +336,29 @@
                 <div id="authMsg"></div>
                 <button class="btn-auth" id="authBtn">Se connecter</button>
                 <button class="btn-guest" id="guestBtn">Jouer en invité</button>
+                <button class="btn-leaderboard" id="leaderboardBtn">Voir le classement</button>
             </div>
             <div class="auth-switch" id="authSwitchText">Pas encore de compte ? <span>S'inscrire</span></div>
+        </div>
+
+        <!-- ÉCRAN DU CLASSEMENT -->
+        <div id="leaderboardScreen" class="hidden" style="display: flex; flex-direction: column; gap: 15px;">
+            <div class="section-title">🏆 Top 10 des Meilleurs Joueurs</div>
+            <div style="max-height: 250px; overflow-y: auto;">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rang</th>
+                            <th>Joueur</th>
+                            <th>Elo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- Rempli dynamiquement -->
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn-guest" id="backToAuthBtn">Retour</button>
         </div>
 
         <!-- ÉCRAN DE CONFIGURATION -->
@@ -398,7 +440,6 @@
                 document.getElementById('authMsg').textContent = "";
             });
 
-            // Bouton Connexion / Inscription
             document.getElementById('authBtn').addEventListener('click', async function() {
                 const username = document.getElementById('usernameInput').value.trim();
                 const password = document.getElementById('passwordInput').value.trim();
@@ -438,7 +479,6 @@
                 }
             });
 
-            // Bouton Jouer en Invité
             document.getElementById('guestBtn').addEventListener('click', function() {
                 currentUser = "Invité";
                 currentElo = 1200;
@@ -450,6 +490,32 @@
                 document.getElementById('authScreen').classList.add('hidden');
                 document.getElementById('setupScreen').classList.remove('hidden');
                 document.getElementById('headerSubtitle').textContent = `Mode Invité - Configuration`;
+            });
+
+            // Affichage du tableau des scores
+            document.getElementById('leaderboardBtn').addEventListener('click', async function() {
+                try {
+                    const res = await fetch('/api/leaderboard');
+                    const data = await res.json();
+                    if (data.success) {
+                        const tbody = document.getElementById('leaderboardBody');
+                        tbody.innerHTML = '';
+                        data.leaderboard.forEach((user, index) => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `<td>#${index + 1}</td><td>${user.username}</td><td style="color: var(--accent-color); font-weight: bold;">${user.elo}</td>`;
+                            tbody.appendChild(tr);
+                        });
+                        document.getElementById('authScreen').classList.add('hidden');
+                        document.getElementById('leaderboardScreen').classList.remove('hidden');
+                    }
+                } catch (e) {
+                    alert("Erreur lors du chargement du classement.");
+                }
+            });
+
+            document.getElementById('backToAuthBtn').addEventListener('click', function() {
+                document.getElementById('leaderboardScreen').classList.add('hidden');
+                document.getElementById('authScreen').classList.remove('hidden');
             });
 
             const slider = document.getElementById('skillSlider');
@@ -496,7 +562,7 @@
         }
 
         async function updateDatabaseElo(newElo) {
-            if (currentUser === "Invité") return; // Les invités n'enregistrent pas en base de données
+            if (currentUser === "Invité") return;
             try {
                 await fetch('/api/update_elo', {
                     method: 'POST',

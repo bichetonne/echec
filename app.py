@@ -7,7 +7,6 @@ import chess.engine
 app = Flask(__name__)
 STOCKFISH_PATH = "stockfish"
 
-# --- BASE DE DONNÉES UTILISATEURS AVEC ELO ---
 def init_db():
     conn = sqlite3.connect('biche_chess.db')
     cursor = conn.cursor()
@@ -81,6 +80,17 @@ def update_elo():
     conn.commit()
     conn.close()
     return jsonify({"success": True, "elo": new_elo})
+
+@app.route('/api/leaderboard', methods=['GET'])
+def leaderboard():
+    conn = sqlite3.connect('biche_chess.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT username, elo FROM users ORDER BY elo DESC LIMIT 10")
+    users = cursor.fetchall()
+    conn.close()
+
+    ranking = [{"username": u[0], "elo": u[1]} for u in users]
+    return jsonify({"success": True, "leaderboard": ranking})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
