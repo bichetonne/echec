@@ -178,7 +178,30 @@
             text-decoration: underline;
         }
 
-        /* Styles du tableau des scores */
+        .options-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-option {
+            flex: 1;
+            padding: 10px 8px;
+            border: 1px solid var(--panel-border);
+            background: #2d241c;
+            color: var(--text-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .btn-option.active {
+            border-color: var(--accent-color);
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--accent-color);
+        }
+
         .leaderboard-table {
             width: 100%;
             border-collapse: collapse;
@@ -239,30 +262,6 @@
         #sliderValueDisplay {
             color: var(--accent-color);
             font-weight: bold;
-        }
-
-        .options-group {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-option {
-            flex: 1;
-            padding: 12px 10px;
-            border: 1px solid var(--panel-border);
-            background: #2d241c;
-            color: var(--text-color);
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-
-        .btn-option.active {
-            border-color: var(--accent-color);
-            background: rgba(212, 175, 55, 0.15);
-            color: var(--accent-color);
         }
 
         .input-group {
@@ -333,6 +332,17 @@
             <div class="form-group">
                 <input type="text" id="usernameInput" placeholder="Nom d'utilisateur">
                 <input type="password" id="passwordInput" placeholder="Mot de passe">
+                
+                <!-- Sélection du niveau affichée uniquement en mode inscription -->
+                <div id="registerOptionsContainer" class="hidden" style="display: flex; flex-direction: column; gap: 5px;">
+                    <span style="font-size: 0.85rem; color: var(--text-muted);">Votre niveau de jeu :</span>
+                    <div class="options-group" id="levelSelector">
+                        <button type="button" class="btn-option" data-level="debutant">Débutant (800)</button>
+                        <button type="button" class="btn-option active" data-level="moyen">Moyen (1200)</button>
+                        <button type="button" class="btn-option" data-level="pro">Pro (1600)</button>
+                    </div>
+                </div>
+
                 <div id="authMsg"></div>
                 <button class="btn-auth" id="authBtn">Se connecter</button>
                 <button class="btn-guest" id="guestBtn">Jouer en invité</button>
@@ -353,9 +363,7 @@
                             <th>Elo</th>
                         </tr>
                     </thead>
-                    <tbody id="leaderboardBody">
-                        <!-- Rempli dynamiquement -->
-                    </tbody>
+                    <tbody id="leaderboardBody"></tbody>
                 </table>
             </div>
             <button class="btn-guest" id="backToAuthBtn">Retour</button>
@@ -418,6 +426,7 @@
         let isLoginMode = true;
         let currentUser = null;
         let currentElo = 1200;
+        let selectedLevel = 'moyen';
 
         const chessComEloMap = {
             1: "250 Elo", 2: "400 Elo", 3: "600 Elo", 4: "800 Elo", 5: "1000 Elo",
@@ -432,12 +441,30 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const authSwitchText = document.getElementById('authSwitchText');
+            const registerOptionsContainer = document.getElementById('registerOptionsContainer');
+
             authSwitchText.addEventListener('click', function() {
                 isLoginMode = !isLoginMode;
                 document.getElementById('authTitle').textContent = isLoginMode ? "Connexion à votre compte" : "Créer un nouveau compte";
                 document.getElementById('authBtn').textContent = isLoginMode ? "Se connecter" : "S'inscrire";
                 authSwitchText.innerHTML = isLoginMode ? "Pas encore de compte ? <span>S'inscrire</span>" : "Déjà un compte ? <span>Se connecter</span>";
                 document.getElementById('authMsg').textContent = "";
+
+                if (isLoginMode) {
+                    registerOptionsContainer.classList.add('hidden');
+                } else {
+                    registerOptionsContainer.classList.remove('hidden');
+                }
+            });
+
+            // Gestion de la sélection du niveau à l'inscription
+            const levelButtons = document.querySelectorAll('#levelSelector .btn-option');
+            levelButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    levelButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedLevel = this.getAttribute('data-level');
+                });
             });
 
             document.getElementById('authBtn').addEventListener('click', async function() {
@@ -451,12 +478,13 @@
                 }
 
                 const endpoint = isLoginMode ? '/api/login' : '/api/register';
+                const payload = isLoginMode ? { username, password } : { username, password, level: selectedLevel };
 
                 try {
                     const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
+                        body: JSON.stringify(payload)
                     });
                     const data = await response.json();
 
@@ -492,7 +520,6 @@
                 document.getElementById('headerSubtitle').textContent = `Mode Invité - Configuration`;
             });
 
-            // Affichage du tableau des scores
             document.getElementById('leaderboardBtn').addEventListener('click', async function() {
                 try {
                     const res = await fetch('/api/leaderboard');

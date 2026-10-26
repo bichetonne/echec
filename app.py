@@ -32,19 +32,28 @@ def register():
     data = request.json
     username = data.get('username', '').strip().lower()
     password = data.get('password', '').strip()
+    level = data.get('level', 'moyen')
 
     if not username or not password:
         return jsonify({"success": False, "message": "Nom d'utilisateur et mot de passe requis."}), 400
+
+    # Attribution de l'Elo initial selon le niveau choisi
+    elo_map = {
+        'debutant': 800,
+        'moyen': 1200,
+        'pro': 1600
+    }
+    initial_elo = elo_map.get(level, 1200)
 
     hashed_password = generate_password_hash(password)
 
     try:
         conn = sqlite3.connect('biche_chess.db')
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (username, password, elo) VALUES (?, ?, 1200)", (username, hashed_password))
+        cursor.execute("INSERT INTO users (username, password, elo) VALUES (?, ?, ?)", (username, hashed_password, initial_elo))
         conn.commit()
         conn.close()
-        return jsonify({"success": True, "message": "Compte créé avec succès !", "elo": 1200})
+        return jsonify({"success": True, "message": "Compte créé avec succès !", "elo": initial_elo})
     except sqlite3.IntegrityError:
         return jsonify({"success": False, "message": "Ce nom d'utilisateur existe déjà."}), 400
 
