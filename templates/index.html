@@ -395,6 +395,20 @@
             <button class="btn-back" id="backToAuthFromSetupBtn">Retour</button>
         </div>
 
+        <!-- 3-BIS. ÉCRAN DE CHOIX DE COULEUR (Comptes connectés uniquement) -->
+        <div id="accountColorScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
+            <div>
+                <div class="section-title">Choisissez votre couleur</div>
+                <div class="options-group colors" id="accountColorSelector">
+                    <button class="btn-option active" data-color="white">Blancs (Vous commencez)</button>
+                    <button class="btn-option" data-color="black">Noirs (Le robot commence)</button>
+                </div>
+            </div>
+
+            <button class="btn-start" id="accountStartBtn">Lancer la partie</button>
+            <button class="btn-back" id="backToAuthFromAccountColorBtn">Retour</button>
+        </div>
+
         <!-- 4. ÉCRAN DE JEU -->
         <div id="gameScreen" class="hidden" style="display: flex; flex-direction: column; gap: 18px;">
             <div>
@@ -442,7 +456,6 @@
         const whiteSymbols = { 'p': '♙', 'n': '♘', 'b': '♗', 'r': '♖', 'q': '♕', 'k': '♔' };
         const blackSymbols = { 'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚' };
 
-        // Fonction pour adapter automatiquement le niveau du robot (1 à 20) selon l'Elo du joueur
         function getSkillLevelFromElo(elo) {
             if (elo <= 600) return 3;
             if (elo <= 850) return 6;
@@ -450,7 +463,7 @@
             if (elo <= 1400) return 12;
             if (elo <= 1700) return 15;
             if (elo <= 2000) return 18;
-            return 20; // Niveau maximal pour les grands pros
+            return 20;
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -480,6 +493,7 @@
                 });
             });
 
+            // Bouton de connexion / inscription -> Dirige vers le choix de couleur pour les comptes
             document.getElementById('authBtn').addEventListener('click', async function() {
                 const username = document.getElementById('usernameInput').value.trim();
                 const password = document.getElementById('passwordInput').value.trim();
@@ -513,12 +527,12 @@
 
                         document.getElementById('authScreen').classList.add('hidden');
 
-                        // Le niveau du robot s'adapte automatiquement à l'Elo du compte
+                        // Détermine le niveau du robot selon l'Elo
                         currentSkillLevel = getSkillLevelFromElo(currentElo);
 
-                        playerColor = 'white';
-                        document.getElementById('headerSubtitle').textContent = `Connecté | Robot Niv. ${currentSkillLevel}`;
-                        startNewGame();
+                        // Affiche l'écran de choix de couleur pour les comptes
+                        document.getElementById('accountColorScreen').classList.remove('hidden');
+                        document.getElementById('headerSubtitle').textContent = `Choix de la couleur | Robot Niv. ${currentSkillLevel}`;
 
                     } else {
                         msgDiv.textContent = data.message;
@@ -528,6 +542,7 @@
                 }
             });
 
+            // Bouton Mode Invité -> Accède à la configuration complète (1 à 20)
             document.getElementById('guestBtn').addEventListener('click', function() {
                 currentUser = "Invité";
                 currentElo = 1200;
@@ -539,6 +554,22 @@
                 document.getElementById('authScreen').classList.add('hidden');
                 document.getElementById('setupScreen').classList.remove('hidden');
                 document.getElementById('headerSubtitle').textContent = `Mode Invité - Configuration`;
+            });
+
+            // Sélection de couleur pour les comptes connectés
+            const accountColorButtons = document.querySelectorAll('#accountColorSelector .btn-option');
+            accountColorButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    accountColorButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    playerColor = this.getAttribute('data-color');
+                });
+            });
+
+            // Lancement de la partie depuis l'écran de couleur des comptes
+            document.getElementById('accountStartBtn').addEventListener('click', function() {
+                document.getElementById('accountColorScreen').classList.add('hidden');
+                startNewGame();
             });
 
             document.getElementById('leaderboardBtn').addEventListener('click', async function() {
@@ -573,6 +604,13 @@
                 document.getElementById('headerSubtitle').textContent = "Portail d'authentification";
             });
 
+            document.getElementById('backToAuthFromAccountColorBtn').addEventListener('click', function() {
+                document.getElementById('accountColorScreen').classList.add('hidden');
+                document.getElementById('authScreen').classList.remove('hidden');
+                document.getElementById('headerRightProfile').classList.remove('active');
+                document.getElementById('headerSubtitle').textContent = "Portail d'authentification";
+            });
+
             document.getElementById('backToSetupFromGameBtn').addEventListener('click', function() {
                 if (confirm("Voulez-vous vraiment quitter la partie en cours ?")) {
                     document.getElementById('gameScreen').classList.add('hidden');
@@ -580,9 +618,8 @@
                         document.getElementById('setupScreen').classList.remove('hidden');
                         document.getElementById('headerSubtitle').textContent = "Mode Invité - Configuration";
                     } else {
-                        document.getElementById('authScreen').classList.remove('hidden');
-                        document.getElementById('headerRightProfile').classList.remove('active');
-                        document.getElementById('headerSubtitle').textContent = "Portail d'authentification";
+                        document.getElementById('accountColorScreen').classList.remove('hidden');
+                        document.getElementById('headerSubtitle').textContent = `Choix de la couleur | Robot Niv. ${currentSkillLevel}`;
                     }
                 }
             });
@@ -620,6 +657,7 @@
             
             game = new Chess();
             document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('accountColorScreen').classList.add('hidden');
             document.getElementById('gameScreen').classList.remove('hidden');
             
             if (currentUser !== "Invité") {
@@ -647,12 +685,10 @@
             }
         }
 
-        // Détermine si le joueur a gagné ou perdu au moment du mat
         function evaluateGameOutcome() {
             if (game.in_checkmate()) {
                 const playerIsWhite = (playerColor === 'white');
-                const aiTurn = game.turn(); // 'w' ou 'b'
-                // Si c'est au tour de l'IA de jouer et qu'il y a mat, l'IA a perdu -> Le joueur a gagné !
+                const aiTurn = game.turn();
                 const playerWon = (playerIsWhite && aiTurn === 'b') || (!playerIsWhite && aiTurn === 'w');
                 return playerWon ? 'win' : 'loss';
             }
@@ -677,8 +713,6 @@
 
             currentElo = Math.max(100, currentElo + eloChange);
             document.getElementById('displayElo').textContent = currentElo;
-            
-            // Met à jour le niveau du robot dynamiquement selon le nouveau score Elo
             currentSkillLevel = getSkillLevelFromElo(currentElo);
             updateDatabaseElo(currentElo);
         }
