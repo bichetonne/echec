@@ -148,21 +148,24 @@ def offer_draw():
     try:
         transport, engine = chess.engine.popen_uci(STOCKFISH_PATH)
         info = engine.analyse(board, chess.engine.Limit(time=0.3))
-        score = info["score"].relative.score(mate_score=10000)
+        score_obj = info["score"].relative
+        score = score_obj.score(mate_score=10000)
         engine.quit()
 
-        if score is not None and score < 150:
-            return jsonify({"accepted": True, "message": "Le robot analyse la position et accepte la proposition de nulle."})
+        if score is not None and score < -200:
+            return jsonify({"accepted": True, "message": "Le robot concède la nulle face à une position critique."})
         else:
-            return jsonify({"accepted": False, "message": "Le robot refuse la nulle ! Il estime avoir l'avantage."})
+            return jsonify({"accepted": False, "message": "Le robot refuse catégoriquement la nulle ! Il veut la victoire."})
     except Exception:
-        return jsonify({"accepted": True, "message": "Le robot accepte la nulle."})
+        return jsonify({"accepted": False, "message": "Le robot refuse la nulle ! Il est là pour en découdre."})
 
+# --- ROBOT INTELLIGENT AVEC APPRENTISSAGE DES ERREURS ---
 @app.route('/api/robot_move', methods=['POST'])
 def robot_move():
     data = request.json
     fen = data.get('fen')
     skill_level = data.get('skill_level', 20)
+    username = data.get('username')
 
     board = chess.Board(fen)
 
@@ -173,9 +176,26 @@ def robot_move():
         engine.quit()
         return jsonify({"success": True, "move": result.move.uci()})
     except Exception:
+        # CERVEAU ADAPTATIF ET APPRENANT DE SECOURS
         legal_moves = list(board.legal_moves)
         if not legal_moves:
             return jsonify({"success": False, "message": "Aucun coup disponible"}), 500
+
+        # 1. APPRENTISSAG : Extraction des zones de danger des défaites passées
+        dangerous_squares = set()
+        try:
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("SELECT moves FROM training_games WHERE result = 'loss' LIMIT 10")
+            past_losses = cursor.fetchall()
+            conn.close()
+            for loss in past_losses:
+                moves_list = loss[0].split()
+                if len(moves_list) >= 2:
+                    # Mémorise les cases finales des coups qui ont mené à des échecs par le passé
+                    dangerous_squares.add(moves_list[-1][-2:])
+        except Exception:
+            pass
 
         piece_values = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3, chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 100}
         best_move = legal_moves[0]
@@ -183,18 +203,32 @@ def robot_move():
 
         for move in legal_moves:
             score = 0
+            to_sq_name = chess.square_name(move.to_square)
+
+            # Évite les erreurs passées apprises dans la base de données
+            if to_sq_name in dangerous_squares:
+                score -= 40
+
+            # Stratégie de capture agressive
             if board.is_capture(move):
                 captured_piece = board.piece_at(move.to_square)
                 if captured_piece:
-                    score += piece_values.get(captured_piece.piece_type, 1) * 15
+                    score += piece_values.get(captured_piece.piece_type, 1) * 20
+
+            # Simulation et anticipation tactique en direct
             board.push(move)
             if board.is_checkmate():
                 score += 100000
             elif board.is_check():
-                score += 25
+                score += 35
+            
+            # ADAPTATION EN COURS DE PARTIE : Évite de placer ses pièces sur des cases attaquées par l'adversaire
+            if board.is_attacked_by(not board.turn, move.to_square):
+                score -= 25
+
             board.pop()
 
-            score += random.uniform(0, 0.4)
+            score += random.uniform(0, 0.3)
             if score > best_score:
                 best_score = score
                 best_move = move
